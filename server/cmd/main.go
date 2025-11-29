@@ -11,6 +11,8 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
+	serverHttp := "http"
+	serverHost := "localhost"
 	serverPort := "8080"
 	webDistPath := "../client/dist"
 
@@ -24,6 +26,6 @@ func main() {
 		panic(err)
 	}
 
-	log.Printf("Starting server on :%s", serverPort)
-	log.Fatal(http.ListenAndServe(":"+serverPort, mux))
+	log.Printf("Starting server on %s://%s:%s", serverHttp, serverHost, serverPort)
+	log.Fatal(http.ListenAndServe(serverHost+":"+serverPort, mux))
 }
