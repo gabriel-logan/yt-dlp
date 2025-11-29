@@ -28,6 +28,7 @@ func main() {
 	}
 
 	stack := middleware.CreateChain(
+		middleware.Recover,
 		middleware.Logger,
 	)
 
