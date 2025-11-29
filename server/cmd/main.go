@@ -17,6 +17,7 @@ func main() {
 	serverHost := "localhost"
 	serverPort := "8080"
 	webDistPath := "../client/dist"
+	requestsTimeout := 30 * time.Second
 
 	// API Routes
 	if err := api.RegisterAPIRoutes(mux); err != nil {
@@ -31,7 +32,7 @@ func main() {
 	stack := middleware.CreateChain(
 		middleware.Recover,
 		middleware.Logger,
-		middleware.Timeout(30*time.Second), // Timeout of 30 seconds for each request
+		middleware.Timeout(requestsTimeout), // Timeout of 30 seconds for each request
 	)
 
 	server := http.Server{
