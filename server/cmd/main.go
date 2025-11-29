@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gabriel-logan/yt-dlp/server/internal/api"
 	"github.com/gabriel-logan/yt-dlp/server/internal/middleware"
@@ -30,6 +31,7 @@ func main() {
 	stack := middleware.CreateChain(
 		middleware.Recover,
 		middleware.Logger,
+		middleware.Timeout(30*time.Second), // Timeout of 30 seconds for each request
 	)
 
 	server := http.Server{
