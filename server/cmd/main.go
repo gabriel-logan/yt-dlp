@@ -13,11 +13,11 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	serverHttp := "http"
-	serverHost := "localhost"
-	serverPort := "8080"
-	webDistPath := "../client/dist"
-	requestsTimeout := 30 * time.Second
+	const serverHttp = "http"
+	const serverHost = "localhost"
+	const serverPort = "8080"
+	const webDistPath = "../client/dist"
+	const requestsTimeout = 30 * time.Second
 
 	// API Routes
 	if err := api.RegisterAPIRoutes(mux); err != nil {
