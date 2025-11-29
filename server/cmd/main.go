@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gabriel-logan/yt-dlp/server/internal/api"
+	"github.com/gabriel-logan/yt-dlp/server/internal/middleware"
 	"github.com/gabriel-logan/yt-dlp/server/internal/web"
 )
 
@@ -26,6 +27,15 @@ func main() {
 		panic(err)
 	}
 
+	stack := middleware.CreateChain(
+		middleware.Logger,
+	)
+
+	server := http.Server{
+		Addr:    serverHost + ":" + serverPort,
+		Handler: stack(mux),
+	}
+
 	log.Printf("Starting server on %s://%s:%s", serverHttp, serverHost, serverPort)
-	log.Fatal(http.ListenAndServe(serverHost+":"+serverPort, mux))
+	log.Fatal(server.ListenAndServe())
 }
