@@ -3,45 +3,27 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 
-	"github.com/gabriel-logan/yt-dlp/server/internal/routes"
+	"github.com/gabriel-logan/yt-dlp/server/internal/api"
+	"github.com/gabriel-logan/yt-dlp/server/internal/web"
 )
 
 func main() {
-	distPath, err := filepath.Abs("../client/dist")
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	mux := http.NewServeMux()
 
 	serverPort := "8080"
+	webDistPath := "../client/dist"
 
-	if err := routes.RegisterAPIRoutes(); err != nil {
-		log.Fatal("Failed to register API routes:", err)
+	// API Routes
+	if err := api.RegisterAPIRoutes(mux); err != nil {
+		panic(err)
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// SPA Handler
+	if err := web.RegisterSPA(mux, webDistPath); err != nil {
+		panic(err)
+	}
 
-		// Prevent access to /api routes
-		if len(r.URL.Path) >= 4 && r.URL.Path[:4] == "/api" {
-			http.NotFound(w, r)
-			return
-		}
-
-		requestPath := filepath.Join(distPath, r.URL.Path)
-
-		// Check if file exists and is not a directory
-		if info, err := os.Stat(requestPath); err == nil && !info.IsDir() {
-			http.ServeFile(w, r, requestPath)
-			return
-		}
-
-		// Fallback for SPA routing
-		http.ServeFile(w, r, filepath.Join(distPath, "index.html"))
-	})
-
-	log.Println("Server running at http://localhost:" + serverPort)
-	log.Fatal(http.ListenAndServe(":"+serverPort, nil))
+	log.Printf("Starting server on :%s", serverPort)
+	log.Fatal(http.ListenAndServe(":"+serverPort, mux))
 }
