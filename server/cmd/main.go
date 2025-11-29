@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/gabriel-logan/yt-dlp/server/internal/routes"
 )
 
 func main() {
@@ -16,10 +18,9 @@ func main() {
 
 	serverPort := "8080"
 
-	http.HandleFunc("/api/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"message":"Hello from Go API!"}`))
-	})
+	if err := routes.RegisterAPIRoutes(); err != nil {
+		log.Fatal("Failed to register API routes:", err)
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
