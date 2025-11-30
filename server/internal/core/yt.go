@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -45,7 +46,7 @@ func InitYTCore() (*YTCore, error) {
 	}, nil
 }
 
-func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
+func (yt *YTCore) DownloadBinaryCtx(ctx context.Context, cfg DownloadConfig) (io.ReadCloser, *exec.Cmd, error) {
 	args := []string{"--no-part", "--no-continue", "-o", "-"}
 
 	var fmtSel string
@@ -72,8 +73,8 @@ func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 		if cfg.FormatNote != "" {
 			fmtSel = fmt.Sprintf("b[format_note=%s]/bv*+ba/b", cfg.FormatNote)
 		} else {
-
 			idx := cfg.Quality
+
 			if idx < 0 {
 				idx = 0
 			}
@@ -88,25 +89,26 @@ func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 		args = append(args, "--merge-output-format", "mkv")
 
 	default:
-		return nil, fmt.Errorf("invalid download type")
+		return nil, nil, fmt.Errorf("unknown download type")
 	}
 
 	args = append(args, "-f", fmtSel, cfg.URL)
 
-	cmd := exec.Command(yt.BinaryPath, args...)
+	cmd := exec.CommandContext(ctx, yt.BinaryPath, args...)
+
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
-	stdoutPipe, err := cmd.StdoutPipe()
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create stdout pipe: %v", err)
+		return nil, nil, fmt.Errorf("failed to create stdout pipe: %v", err)
 	}
 
 	if err := cmd.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start yt-dlp: %v, details: %s", err, stderr.String())
+		return nil, nil, fmt.Errorf("failed to start yt-dlp: %v, details: %s", err, stderr.String())
 	}
 
-	return stdoutPipe, nil
+	return stdout, cmd, nil
 }
 
 func (yt *YTCore) GetVideoInfo(url string) (string, error) {

@@ -77,7 +77,7 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reader, err := yt.DownloadBinary(core.DownloadConfig{
+	reader, cmd, err := yt.DownloadBinaryCtx(r.Context(), core.DownloadConfig{
 		URL:        req.URL,
 		Type:       dType,
 		Quality:    req.Quality,
@@ -97,6 +97,16 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=video.%s", ext))
 	w.Header().Set("Content-Type", contentType)
 
-	// Stream the content directly to the response writer
-	io.Copy(w, reader)
+	done := make(chan struct{})
+
+	go func() {
+		io.Copy(w, reader)
+		close(done)
+	}()
+
+	select {
+	case <-r.Context().Done():
+		cmd.Process.Kill()
+	case <-done:
+	}
 }
