@@ -82,7 +82,9 @@ func (yt *YTCore) GetVideoInfo(url string) (string, error) {
 	args := []string{"--dump-json", url}
 
 	cmd := exec.Command(yt.BinaryPath, args...)
+
 	var out, stderr bytes.Buffer
+
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
