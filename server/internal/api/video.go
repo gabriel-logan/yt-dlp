@@ -36,11 +36,10 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		URL       string `json:"url"`
-		Type      string `json:"type"`      // "video" or "audio"
-		Format    string `json:"format"`    // "mp4", "mp3", etc
-		Quality   string `json:"quality"`   // "best", "720", etc
-		OutputDir string `json:"outputDir"` // e.g., "./downloads"
+		URL     string `json:"url"`
+		Type    string `json:"type"`    // "video" or "audio"
+		Format  string `json:"format"`  // "mp4", "mp3", etc
+		Quality string `json:"quality"` // "best", "720", etc
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
