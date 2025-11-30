@@ -52,10 +52,8 @@ func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 
 	switch cfg.Type {
 	case Audio:
-		args = append(args, "-f", "bestaudio")
 		args = append(args, "--extract-audio")
-
-		args = append(args, "--audio-format", formatNote)
+		args = append(args, "-f", formatNote)
 	case Video:
 		args = append(args, "-f", formatNote)
 	}
