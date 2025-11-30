@@ -5,6 +5,7 @@ import apiInstance from "../lib/apiInstance";
 export default function HomePage() {
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [downloadLoading, setDownloadLoading] = useState(false);
   const [videoData, setVideoData] = useState<null | {
     title: string;
     videoFormats: { format: string; quality: string }[];
@@ -16,7 +17,7 @@ export default function HomePage() {
     setLoading(true);
 
     apiInstance
-      .get("/video/info", { params: { url: videoUrl } })
+      .get("/api/video/info", { params: { url: videoUrl } })
       .then(function (response) {
         const data = response.data;
 
@@ -73,6 +74,8 @@ export default function HomePage() {
   ) {
     if (!videoUrl) return;
 
+    setDownloadLoading(true); // inicia loading global
+
     apiInstance
       .post(
         "/api/video/download",
@@ -96,12 +99,22 @@ export default function HomePage() {
       .catch(function (error) {
         console.error("Download error:", error);
         alert("Failed to download.");
+      })
+      .finally(function () {
+        setDownloadLoading(false); // encerra loading
       });
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
-      <div className="w-full max-w-xl rounded-xl bg-white p-8 shadow-lg">
+    <div className="relative flex min-h-screen items-center justify-center bg-gray-100 p-4">
+      {/* Overlay de loading do download */}
+      {downloadLoading && (
+        <div className="bg-opacity-50 absolute inset-0 z-50 flex items-center justify-center bg-black">
+          <div className="text-xl font-semibold text-white">Downloading...</div>
+        </div>
+      )}
+
+      <div className="z-10 w-full max-w-xl rounded-xl bg-white p-8 shadow-lg">
         <h1 className="mb-6 text-center text-3xl font-bold">
           Video Downloader
         </h1>
