@@ -4,8 +4,8 @@ import apiInstance from "../lib/apiInstance";
 
 export default function HomePage() {
   const [videoUrl, setVideoUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [downloadLoading, setDownloadLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [downloadIsLoading, setDownloadIsLoading] = useState(false);
   const [videoData, setVideoData] = useState<null | {
     title: string;
     videoFormats: { format: string; quality: string }[];
@@ -13,8 +13,12 @@ export default function HomePage() {
   }>(null);
 
   function handleFetchVideo() {
-    if (!videoUrl) return;
-    setLoading(true);
+    if (!videoUrl) {
+      alert("Please enter a video URL.");
+      return;
+    }
+
+    setIsLoading(true);
 
     apiInstance
       .get("/api/video/info", { params: { url: videoUrl } })
@@ -63,7 +67,7 @@ export default function HomePage() {
         alert("Failed to fetch video info.");
       })
       .finally(function () {
-        setLoading(false);
+        setIsLoading(false);
       });
   }
 
@@ -74,7 +78,7 @@ export default function HomePage() {
   ) {
     if (!videoUrl) return;
 
-    setDownloadLoading(true); // inicia loading global
+    setDownloadIsLoading(true); // inicia isLoading global
 
     apiInstance
       .post(
@@ -101,14 +105,14 @@ export default function HomePage() {
         alert("Failed to download.");
       })
       .finally(function () {
-        setDownloadLoading(false); // encerra loading
+        setDownloadIsLoading(false); // encerra isLoading
       });
   }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-gray-100 p-4">
-      {/* Overlay de loading do download */}
-      {downloadLoading && (
+      {/* Overlay de isLoading do download */}
+      {downloadIsLoading && (
         <div className="bg-opacity-50 absolute inset-0 z-50 flex items-center justify-center bg-black">
           <div className="text-xl font-semibold text-white">Downloading...</div>
         </div>
@@ -131,10 +135,10 @@ export default function HomePage() {
           />
           <button
             onClick={handleFetchVideo}
-            className={`rounded-lg bg-blue-600 px-6 py-3 text-white transition hover:bg-blue-700 ${loading && "cursor-not-allowed opacity-60"}`}
-            disabled={loading || downloadLoading}
+            className={`rounded-lg bg-blue-600 px-6 py-3 text-white transition hover:bg-blue-700 ${isLoading && "cursor-not-allowed opacity-60"}`}
+            disabled={isLoading || downloadIsLoading}
           >
-            {loading ? "Loading..." : "Fetch"}
+            {isLoading ? "Loading..." : "Fetch"}
           </button>
         </div>
 
@@ -153,7 +157,7 @@ export default function HomePage() {
                         handleDownload("video", f.format, f.quality);
                       }}
                       className="rounded-lg bg-green-500 px-4 py-2 text-white transition hover:bg-green-600"
-                      disabled={loading || downloadLoading}
+                      disabled={isLoading || downloadIsLoading}
                     >
                       {f.quality}p
                     </button>
@@ -173,7 +177,7 @@ export default function HomePage() {
                         handleDownload("audio", f.format, f.quality);
                       }}
                       className="rounded-lg bg-purple-500 px-4 py-2 text-white transition hover:bg-purple-600"
-                      disabled={loading || downloadLoading}
+                      disabled={isLoading || downloadIsLoading}
                     >
                       {f.quality}kbps
                     </button>

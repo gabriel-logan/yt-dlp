@@ -1,0 +1,36 @@
+export interface VideoInfoResponse {
+  id: string;
+  title: string;
+  thumbnail: string;
+  description: string;
+  duration: number;
+  media_type: string;
+  timestamp: number;
+  original_url: string;
+  display_id: string;
+  fulltitle: string;
+  duration_string: string;
+  format_id: string;
+  url: string;
+  tbr: number;
+  ext: string;
+  fps: number;
+  protocol: string;
+  quality: number;
+  has_drm: boolean;
+  width: number;
+  height: number;
+  vcodec: string;
+  acodec: string;
+  available_at: number;
+  source_preference: number;
+  language: string;
+  video_ext: string;
+  audio_ext: string;
+  resolution: string;
+  aspect_ratio: number;
+  format: string;
+  _filename: string;
+  filename: string;
+  _type: string;
+}
