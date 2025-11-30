@@ -3,6 +3,7 @@ package core
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -42,30 +43,23 @@ func InitYTCore() (*YTCore, error) {
 	}, nil
 }
 
-func (yt *YTCore) Download(cfg DownloadConfig) error {
-	args := []string{}
-
-	args = append(args, "-o", fmt.Sprintf("%s/%%(title)s.%%(ext)s", cfg.OutputDir))
+func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
+	args := []string{"-o", "-"} // output to stdout
 
 	switch cfg.Type {
 	case Audio:
 		args = append(args, "-f", "bestaudio")
-
 		if cfg.Format != "" {
 			args = append(args, "--extract-audio", "--audio-format", cfg.Format)
 		}
-
 	case Video:
 		format := "bestvideo+bestaudio"
-
 		if cfg.Quality != "" {
 			format = fmt.Sprintf("bestvideo[height<=%s]+bestaudio/best", cfg.Quality)
 		}
-
 		if cfg.Format != "" {
 			format += fmt.Sprintf("[ext=%s]", cfg.Format)
 		}
-
 		args = append(args, "-f", format)
 	}
 
@@ -75,12 +69,17 @@ func (yt *YTCore) Download(cfg DownloadConfig) error {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
-	err := cmd.Run()
+	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
-		return fmt.Errorf("error while downloading: %v, details: %s", err, stderr.String())
+		return nil, fmt.Errorf("failed to create stdout pipe: %v", err)
 	}
 
-	return nil
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("failed to start yt-dlp: %v", err)
+	}
+
+	// Retorna o stdout diretamente como reader
+	return stdoutPipe, nil
 }
 
 func (yt *YTCore) GetVideoInfo(url string) (string, error) {

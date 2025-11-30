@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -52,26 +53,29 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request) {
 		dType = core.Audio
 	}
 
-	cfg := core.DownloadConfig{
-		URL:       req.URL,
-		Type:      dType,
-		Format:    req.Format,
-		Quality:   req.Quality,
-		OutputDir: req.OutputDir,
-	}
+	yt, _ := core.InitYTCore()
 
-	yt, err := core.InitYTCore()
+	reader, err := yt.DownloadBinary(core.DownloadConfig{
+		URL:     req.URL,
+		Type:    dType,
+		Format:  req.Format,
+		Quality: req.Quality,
+	})
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error initializing YTCore: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("download failed: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	err = yt.Download(cfg)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("error downloading: %v", err), http.StatusInternalServerError)
-		return
+	ext := "mp4"
+	contentType := "video/mp4"
+	if dType == core.Audio && req.Format != "" {
+		ext = req.Format
+		contentType = "audio/mpeg"
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"success","message":"download completed"}`))
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=video.%s", ext))
+	w.Header().Set("Content-Type", contentType)
+
+	// Stream the content directly to the response writer
+	io.Copy(w, reader)
 }
