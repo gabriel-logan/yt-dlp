@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import Loading from "../components/Loading";
 import apiInstance from "../lib/apiInstance";
 import type {
   DownloadRequestPayload,
@@ -123,6 +124,12 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-gray-50 p-6">
+      {anyLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <Loading className="scale-125" />
+        </div>
+      )}
+
       <h1 className="mb-6 text-3xl font-bold text-gray-800">
         Video/Audio Downloader
       </h1>
@@ -141,33 +148,7 @@ export default function HomePage() {
           onClick={handleFetchVideo}
           disabled={anyLoading}
         >
-          {isLoading ? (
-            <span className="flex items-center gap-2">
-              <svg
-                className="h-5 w-5 animate-spin text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v8H4z"
-                ></path>
-              </svg>
-              Fetching...
-            </span>
-          ) : (
-            "Fetch Info"
-          )}
+          {isLoading ? "Fetching..." : "Fetch Info"}
         </button>
       </div>
 
@@ -213,30 +194,7 @@ export default function HomePage() {
                       }
                       disabled={anyLoading}
                     >
-                      {downloadIsLoading ? (
-                        <svg
-                          className="h-5 w-5 animate-spin text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v8H4z"
-                          ></path>
-                        </svg>
-                      ) : (
-                        "Download"
-                      )}
+                      Download
                     </button>
                   </div>
                 ))}
@@ -272,30 +230,7 @@ export default function HomePage() {
                       }
                       disabled={anyLoading}
                     >
-                      {downloadIsLoading ? (
-                        <svg
-                          className="h-5 w-5 animate-spin text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v8H4z"
-                          ></path>
-                        </svg>
-                      ) : (
-                        "Download"
-                      )}
+                      Download
                     </button>
                   </div>
                 ))}
