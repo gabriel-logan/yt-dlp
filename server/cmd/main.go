@@ -47,9 +47,9 @@ func main() {
 	stack := middleware.CreateChain(
 		middleware.Recover,
 		middleware.Logger,
-		middleware.AuthMiddleware,
 		middleware.CORSMiddleware,
-		middleware.Timeout(requestsTimeout), // Timeout of 30 seconds for each request
+		middleware.AuthMiddleware,
+		middleware.Timeout(requestsTimeout),
 	)
 
 	server := http.Server{
