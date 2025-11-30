@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 )
 
 type DownloadType int
@@ -44,6 +43,24 @@ func InitYTCore() (*YTCore, error) {
 	return &YTCore{
 		BinaryPath: binPath,
 	}, nil
+}
+
+func (yt *YTCore) GetVideoInfo(url string) (string, error) {
+	args := []string{"--dump-json", url}
+
+	cmd := exec.Command(yt.BinaryPath, args...)
+
+	var out, stderr bytes.Buffer
+
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	if err != nil {
+		return "", fmt.Errorf("error getting video info: %v, details: %s", err, stderr.String())
+	}
+
+	return out.String(), nil
 }
 
 func (yt *YTCore) DownloadBinaryCtx(ctx context.Context, cfg DownloadConfig) (io.ReadCloser, *exec.Cmd, error) {
@@ -109,22 +126,4 @@ func (yt *YTCore) DownloadBinaryCtx(ctx context.Context, cfg DownloadConfig) (io
 	}
 
 	return stdout, cmd, nil
-}
-
-func (yt *YTCore) GetVideoInfo(url string) (string, error) {
-	args := []string{"--dump-json", url}
-
-	cmd := exec.Command(yt.BinaryPath, args...)
-
-	var out, stderr bytes.Buffer
-
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
-	if err != nil {
-		return "", fmt.Errorf("error getting video info: %v, details: %s", err, stderr.String())
-	}
-
-	return strings.TrimSpace(out.String()), nil
 }

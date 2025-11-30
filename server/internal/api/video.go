@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -29,20 +28,20 @@ func getYTCore() (*core.YTCore, error) {
 func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 
-	if strings.TrimSpace(url) == "" {
-		http.Error(w, "url parameter is required", http.StatusBadRequest)
+	if strings.TrimSpace(url) == "" || len(strings.TrimSpace(url)) > 2000 {
+		http.Error(w, "url parameter is required and must be a valid URL with a maximum length of 2000 characters", http.StatusBadRequest)
 		return
 	}
 
 	yt, err := getYTCore()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error initializing YTCore: %v", err), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	info, err := yt.GetVideoInfo(url)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error getting video info: %v", err), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -110,31 +109,25 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		FormatNote: req.FormatNote,
 	})
 	if err != nil {
-		http.Error(w, "yt-dlp failed", http.StatusInternalServerError)
+		http.Error(w, "yt-dlp download failed", http.StatusInternalServerError)
 		return
 	}
 
-	if stderrPipe, _ := cmd.StderrPipe(); stderrPipe != nil {
-		go io.Copy(io.Discard, stderrPipe)
+	if dType == core.Audio {
+		w.Header().Set("Content-Type", "audio/mpeg")
+	} else {
+		w.Header().Set("Content-Type", "video/x-matroska")
 	}
 
-	buf := make([]byte, 256*1024)
+	waitCh := make(chan error, 1)
+	go func() { waitCh <- cmd.Wait() }()
 
-	go func() {
-		<-r.Context().Done()
-		cmd.Process.Kill()
-		cmd.Wait()
-	}()
+	_, copyErr := io.Copy(w, reader)
 
-	_, copyErr := io.CopyBuffer(w, reader, buf)
-
-	cmd.Wait()
+	cmd.Process.Kill()
+	<-waitCh
 
 	if copyErr != nil {
 		return
-	}
-
-	if f, ok := w.(http.Flusher); ok {
-		f.Flush()
 	}
 }
