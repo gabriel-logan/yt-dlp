@@ -17,7 +17,7 @@ import (
 func main() {
 	const serverHttp = "http"
 	const serverHost = "localhost"
-	const requestsTimeout = 30 * time.Second
+	const requestsTimeout = 2 * time.Minute
 
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")

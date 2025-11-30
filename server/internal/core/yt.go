@@ -52,9 +52,9 @@ func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 			args = append(args, "--extract-audio", "--audio-format", cfg.Format)
 		}
 	case Video:
-		format := "bestvideo+bestaudio"
+		format := "best"
 		if cfg.Quality != "" {
-			format = fmt.Sprintf("bestvideo[height<=%s]+bestaudio/best", cfg.Quality)
+			format = fmt.Sprintf("best[height<=%s]", cfg.Quality)
 		}
 		if cfg.Format != "" {
 			format += fmt.Sprintf("[ext=%s]", cfg.Format)
