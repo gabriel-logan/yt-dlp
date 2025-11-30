@@ -47,6 +47,7 @@ func main() {
 	stack := middleware.CreateChain(
 		middleware.Recover,
 		middleware.Logger,
+		middleware.AuthMiddleware,
 		middleware.Timeout(requestsTimeout), // Timeout of 30 seconds for each request
 	)
 
