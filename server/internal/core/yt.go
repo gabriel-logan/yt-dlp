@@ -65,7 +65,7 @@ func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 
 	case Video:
 		if cfg.FormatNote != "" {
-			fmtSel = fmt.Sprintf("bv*[format_note=%s]+ba/b[format_note=%s]/b", cfg.FormatNote, cfg.FormatNote)
+			fmtSel = fmt.Sprintf("b[format_note=%s]/bv*+ba/b", cfg.FormatNote)
 		} else {
 			heights := []int{144, 240, 360, 480, 720, 1080, 1440, 2160}
 			idx := cfg.Quality
@@ -76,7 +76,7 @@ func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 				idx = len(heights) - 1
 			}
 			h := heights[idx]
-			fmtSel = fmt.Sprintf("bv*[height<=?%d]+ba/b[height<=?%d]/b", h, h)
+			fmtSel = fmt.Sprintf("b[height<=?%d]/bv*[height<=?%d]+ba/b", h, h)
 		}
 		args = append(args, "--merge-output-format", "mkv")
 
