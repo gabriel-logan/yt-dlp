@@ -66,6 +66,32 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validations
+	if strings.TrimSpace(req.URL) == "" || len(strings.TrimSpace(req.URL)) > 2000 {
+		http.Error(w, "url parameter is required and must be a valid URL with a maximum length of 2000 characters", http.StatusBadRequest)
+		return
+	}
+
+	if req.Type != "video" && req.Type != "audio" {
+		http.Error(w, "type parameter must be either 'video' or 'audio'", http.StatusBadRequest)
+		return
+	}
+
+	if req.Quality < 0 {
+		http.Error(w, "quality parameter must be a non-negative integer", http.StatusBadRequest)
+		return
+	}
+
+	if req.Quality > 1000 {
+		http.Error(w, "quality parameter must be less than or equal to 1000", http.StatusBadRequest)
+		return
+	}
+
+	if len(strings.TrimSpace(req.FormatNote)) > 100 {
+		http.Error(w, "format_note parameter must be less than or equal to 100 characters", http.StatusBadRequest)
+		return
+	}
+
 	dType := core.Video
 	if req.Type == "audio" {
 		dType = core.Audio
