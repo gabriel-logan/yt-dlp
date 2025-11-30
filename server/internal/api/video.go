@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"os/exec"
 	"strings"
 	"sync"
 
@@ -15,6 +17,7 @@ var (
 	initErr     error
 	downloadSem = make(chan struct{}, 10) // limite de 10 downloads simultâneos
 	once        sync.Once
+	wg          sync.WaitGroup
 )
 
 func getYTCore() (*core.YTCore, error) {
@@ -51,7 +54,10 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	downloadSem <- struct{}{}
-	defer func() { <-downloadSem }()
+	defer func() {
+		<-downloadSem
+		wg.Wait() // Wait for all goroutines to finish
+	}()
 
 	var req struct {
 		URL        string `json:"url"`
@@ -91,38 +97,54 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		dType = core.Audio
 	}
 
-	yt, err := getYTCore()
-	if err != nil {
-		http.Error(w, "init error", http.StatusInternalServerError)
-		return
-	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 
-	reader, cmd, err := yt.DownloadBinaryCtx(r.Context(), core.DownloadConfig{
-		URL:        req.URL,
-		Type:       dType,
-		Quality:    req.Quality,
-		FormatNote: req.FormatNote,
-	})
-	if err != nil {
-		http.Error(w, "yt-dlp download failed", http.StatusInternalServerError)
-		return
-	}
+		yt, err := getYTCore()
+		if err != nil {
+			http.Error(w, "init error", http.StatusInternalServerError)
+			return
+		}
 
+		reader, cmd, err := yt.DownloadBinaryCtx(r.Context(), core.DownloadConfig{
+			URL:        req.URL,
+			Type:       dType,
+			Quality:    req.Quality,
+			FormatNote: req.FormatNote,
+		})
+		if err != nil {
+			http.Error(w, "yt-dlp download failed", http.StatusInternalServerError)
+			return
+		}
+
+		if err := sendDownloadResponse(w, reader, cmd, dType); err != nil {
+			http.Error(w, "failed to stream data", http.StatusInternalServerError)
+			return
+		}
+	}()
+}
+
+func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec.Cmd, dType core.DownloadType) error {
 	if dType == core.Audio {
 		w.Header().Set("Content-Type", "audio/mpeg")
 	} else {
 		w.Header().Set("Content-Type", "video/x-matroska")
 	}
 
-	waitCh := make(chan error, 1)
-	go func() { waitCh <- cmd.Wait() }()
-
-	_, copyErr := io.Copy(w, reader)
-
-	cmd.Process.Kill()
-	<-waitCh
-
-	if copyErr != nil {
-		return
+	_, err := io.Copy(w, reader)
+	if err != nil {
+		return fmt.Errorf("failed to copy data to response: %v", err)
 	}
+
+	err = cmd.Wait()
+	if err != nil {
+		return fmt.Errorf("yt-dlp command failed: %v", err)
+	}
+
+	if err := reader.Close(); err != nil {
+		return fmt.Errorf("failed to close reader: %v", err)
+	}
+
+	return nil
 }
