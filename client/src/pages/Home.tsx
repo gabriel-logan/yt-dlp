@@ -116,7 +116,7 @@ export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col items-center bg-gray-50 p-6">
       <h1 className="mb-6 text-3xl font-bold text-gray-800">
-        YouTube Downloader
+        Video/Audio Downloader
       </h1>
 
       <div className="mb-6 flex w-full max-w-2xl flex-col gap-4 sm:flex-row">
