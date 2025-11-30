@@ -34,7 +34,7 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(info))
 }
 
-func DownloadHandler(w http.ResponseWriter, r *http.Request) {
+func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		URL     string `json:"url"`
 		Type    string `json:"type"`    // "video" or "audio"
