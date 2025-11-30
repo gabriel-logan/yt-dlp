@@ -19,7 +19,7 @@ func main() {
 	const serverHost = "localhost"
 	const requestsTimeout = 2 * time.Minute
 
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load("../.env"); err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
