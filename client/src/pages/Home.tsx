@@ -7,8 +7,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [videoData, setVideoData] = useState<null | {
     title: string;
-    videoFormats: { format_id: string; quality: string }[];
-    audioFormats: { format_id: string; quality: string }[];
+    videoFormats: { format: string; quality: string }[];
+    audioFormats: { format: string; quality: string }[];
   }>(null);
 
   function handleFetchVideo() {
@@ -20,8 +20,8 @@ export default function HomePage() {
       .then(function (response) {
         const data = response.data;
 
-        const videoFormats: { format_id: string; quality: string }[] = [];
-        const audioFormats: { format_id: string; quality: string }[] = [];
+        const videoFormats: { format: string; quality: string }[] = [];
+        const audioFormats: { format: string; quality: string }[] = [];
 
         if (Array.isArray(data.formats)) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,19 +33,19 @@ export default function HomePage() {
 
             if (isVideo) {
               videoFormats.push({
-                format_id: format.format_id,
+                format: "mp4",
                 quality: format.height
-                  ? `${format.height}p`
-                  : format.format_note || format.format_id,
+                  ? `${format.height}`
+                  : format.format_note || "unknown",
               });
             }
 
             if (isAudioOnly) {
               audioFormats.push({
-                format_id: format.format_id,
+                format: "mp3",
                 quality: format.abr
-                  ? `${format.abr}kbps`
-                  : format.format_note || format.format_id,
+                  ? `${format.abr}`
+                  : format.format_note || "unknown",
               });
             }
           });
@@ -66,7 +66,11 @@ export default function HomePage() {
       });
   }
 
-  function handleDownload(format_id: string) {
+  function handleDownload(
+    type: "video" | "audio",
+    format: string,
+    quality: string,
+  ) {
     if (!videoUrl) return;
 
     apiInstance
@@ -74,7 +78,9 @@ export default function HomePage() {
         "/api/video/download",
         {
           url: videoUrl,
-          format_id: format_id,
+          type: type,
+          format: format,
+          quality: quality,
         },
         { responseType: "blob" },
       )
@@ -82,7 +88,7 @@ export default function HomePage() {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", "video");
+        link.setAttribute("download", `${type}_${quality}.${format}`);
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -128,13 +134,13 @@ export default function HomePage() {
                 {videoData.videoFormats.map(function (f) {
                   return (
                     <button
-                      key={f.format_id}
+                      key={f.quality}
                       onClick={function () {
-                        handleDownload(f.format_id);
+                        handleDownload("video", f.format, f.quality);
                       }}
                       className="rounded-lg bg-green-500 px-4 py-2 text-white transition hover:bg-green-600"
                     >
-                      {f.quality}
+                      {f.quality}p
                     </button>
                   );
                 })}
@@ -147,13 +153,13 @@ export default function HomePage() {
                 {videoData.audioFormats.map(function (f) {
                   return (
                     <button
-                      key={f.format_id}
+                      key={f.quality}
                       onClick={function () {
-                        handleDownload(f.format_id);
+                        handleDownload("audio", f.format, f.quality);
                       }}
                       className="rounded-lg bg-purple-500 px-4 py-2 text-white transition hover:bg-purple-600"
                     >
-                      {f.quality}
+                      {f.quality}kbps
                     </button>
                   );
                 })}
