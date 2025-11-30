@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gabriel-logan/yt-dlp/server/internal/api"
@@ -11,12 +14,19 @@ import (
 )
 
 func main() {
+	cwd, err := os.Getwd()
+
+	if err != nil {
+		panic(fmt.Sprintf("failed to get current directory: %v", err))
+	}
+
+	webDistPath := filepath.Join(cwd, "..", "client", "dist")
+
 	mux := http.NewServeMux()
 
 	const serverHttp = "http"
 	const serverHost = "localhost"
 	const serverPort = "8080"
-	const webDistPath = "../client/dist"
 	const requestsTimeout = 30 * time.Second
 
 	// API Routes
