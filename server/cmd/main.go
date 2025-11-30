@@ -15,7 +15,6 @@ import (
 )
 
 func main() {
-	const serverHttp = "http"
 	const serverHost = "localhost"
 	const requestsTimeout = 5 * time.Minute
 
@@ -59,6 +58,21 @@ func main() {
 		Handler: stack(mux),
 	}
 
-	log.Printf("Starting server on %s://%s:%s", serverHttp, serverHost, serverPort)
-	log.Fatal(server.ListenAndServe())
+	goEnv := os.Getenv("GO_ENV")
+
+	if goEnv == "production" {
+		sslCertPath := os.Getenv("SSL_CERT_PATH")
+		sslKeyPath := os.Getenv("SSL_KEY_PATH")
+
+		fmt.Printf("Using SSL_CERT_PATH: %s\n", sslCertPath)
+		fmt.Printf("Using SSL_KEY_PATH: %s\n", sslKeyPath)
+
+		log.Printf("Starting server on https://%s:%s", serverHost, serverPort)
+
+		log.Fatal(server.ListenAndServeTLS(sslCertPath, sslKeyPath))
+	} else {
+		log.Printf("Starting server on http://%s:%s", serverHost, serverPort)
+
+		log.Fatal(server.ListenAndServe())
+	}
 }
