@@ -76,11 +76,6 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Quality < 0 {
-		http.Error(w, "quality parameter must be a non-negative integer", http.StatusBadRequest)
-		return
-	}
-
 	if req.Quality > 1000 {
 		http.Error(w, "quality parameter must be less than or equal to 1000", http.StatusBadRequest)
 		return
