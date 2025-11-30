@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 )
 
 type DownloadType int
@@ -30,6 +31,8 @@ type DownloadConfig struct {
 type YTCore struct {
 	BinaryPath string
 }
+
+var threads = runtime.NumCPU()
 
 func InitYTCore() (*YTCore, error) {
 	cwd, err := os.Getwd()
@@ -64,7 +67,14 @@ func (yt *YTCore) GetVideoInfo(url string) (string, error) {
 }
 
 func (yt *YTCore) DownloadBinaryCtx(ctx context.Context, cfg DownloadConfig) (io.ReadCloser, *exec.Cmd, error) {
-	args := []string{"--no-part", "--no-continue", "-o", "-"}
+	args := []string{
+		"--no-part",
+		"--no-continue",
+		"--concurrent-fragments", fmt.Sprintf("%d", threads),
+		"--downloader-args", "ffmpeg:-threads=0",
+		"-o",
+		"-",
+	}
 
 	var fmtSel string
 	switch cfg.Type {
