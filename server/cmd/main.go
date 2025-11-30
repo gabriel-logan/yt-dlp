@@ -48,6 +48,7 @@ func main() {
 		middleware.Recover,
 		middleware.Logger,
 		middleware.AuthMiddleware,
+		middleware.CORSMiddleware,
 		middleware.Timeout(requestsTimeout), // Timeout of 30 seconds for each request
 	)
 
