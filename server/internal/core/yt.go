@@ -17,6 +17,9 @@ const (
 	Audio
 )
 
+var audioABRLevels = []int{64, 96, 128, 160, 192, 256, 320}
+var videoHeights = []int{144, 240, 360, 480, 720, 1080, 1440, 2160}
+
 type DownloadConfig struct {
 	URL        string
 	Type       DownloadType
@@ -51,15 +54,17 @@ func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 		if cfg.FormatNote != "" {
 			fmtSel = fmt.Sprintf("ba[format_note=%s]/ba/bestaudio", cfg.FormatNote)
 		} else {
-			audioABR := []int{64, 96, 128, 160, 192, 256, 320}
 			idx := cfg.Quality
+
 			if idx < 0 {
 				idx = 0
 			}
-			if idx >= len(audioABR) {
-				idx = len(audioABR) - 1
+
+			if idx >= len(audioABRLevels) {
+				idx = len(audioABRLevels) - 1
 			}
-			target := audioABR[idx]
+
+			target := audioABRLevels[idx]
 			fmtSel = fmt.Sprintf("ba[abr<=?%d]/bestaudio", target)
 		}
 
@@ -67,15 +72,17 @@ func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 		if cfg.FormatNote != "" {
 			fmtSel = fmt.Sprintf("b[format_note=%s]/bv*+ba/b", cfg.FormatNote)
 		} else {
-			heights := []int{144, 240, 360, 480, 720, 1080, 1440, 2160}
+
 			idx := cfg.Quality
 			if idx < 0 {
 				idx = 0
 			}
-			if idx >= len(heights) {
-				idx = len(heights) - 1
+
+			if idx >= len(videoHeights) {
+				idx = len(videoHeights) - 1
 			}
-			h := heights[idx]
+
+			h := videoHeights[idx]
 			fmtSel = fmt.Sprintf("b[height<=?%d]/bv*[height<=?%d]+ba/b", h, h)
 		}
 		args = append(args, "--merge-output-format", "mkv")
