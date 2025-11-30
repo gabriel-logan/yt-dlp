@@ -6,9 +6,25 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/gabriel-logan/yt-dlp/server/internal/core"
 )
+
+var (
+	ytCore      *core.YTCore
+	initErr     error
+	downloadSem = make(chan struct{}, 10) // limite de 10 downloads simultâneos
+	once        sync.Once
+)
+
+func getYTCore() (*core.YTCore, error) {
+	once.Do(func() {
+		ytCore, initErr = core.InitYTCore()
+	})
+
+	return ytCore, initErr
+}
 
 func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
@@ -18,7 +34,7 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	yt, err := core.InitYTCore()
+	yt, err := getYTCore()
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error initializing YTCore: %v", err), http.StatusInternalServerError)
 		return
@@ -35,6 +51,9 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
+	downloadSem <- struct{}{}
+	defer func() { <-downloadSem }()
+
 	var req struct {
 		URL        string `json:"url"`
 		Type       string `json:"type"`
@@ -52,7 +71,11 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		dType = core.Audio
 	}
 
-	yt, _ := core.InitYTCore()
+	yt, err := getYTCore()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error initializing YTCore: %v", err), http.StatusInternalServerError)
+		return
+	}
 
 	reader, err := yt.DownloadBinary(core.DownloadConfig{
 		URL:        req.URL,
