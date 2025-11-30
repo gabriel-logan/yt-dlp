@@ -18,11 +18,10 @@ const (
 )
 
 type DownloadConfig struct {
-	URL       string
-	Type      DownloadType
-	Format    string
-	Quality   string
-	OutputDir string
+	URL     string
+	Type    DownloadType
+	Format  string
+	Quality string
 }
 
 type YTCore struct {
