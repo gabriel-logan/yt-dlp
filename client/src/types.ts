@@ -69,3 +69,10 @@ export interface VideoInfoResponseFormat {
   available_at?: number;
   manifest_url?: string;
 }
+
+export interface DownloadRequestPayload {
+  url: string;
+  type: VideoInfoResponse["_type"];
+  quality: number;
+  format_note: string;
+}

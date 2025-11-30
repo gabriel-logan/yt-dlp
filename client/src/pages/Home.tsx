@@ -1,7 +1,11 @@
 import { useState } from "react";
 
 import apiInstance from "../lib/apiInstance";
-import type { VideoInfoResponse, VideoInfoResponseFormat } from "../types";
+import type {
+  DownloadRequestPayload,
+  VideoInfoResponse,
+  VideoInfoResponseFormat,
+} from "../types";
 
 export default function HomePage() {
   const [videoUrl, setVideoUrl] = useState("");
@@ -9,9 +13,12 @@ export default function HomePage() {
   const [downloadIsLoading, setDownloadIsLoading] = useState(false);
   const [videoData, setVideoData] = useState<null | {
     title: VideoInfoResponse["title"];
+    thumbnail: VideoInfoResponse["thumbnail"];
     videoFormats: VideoInfoResponseFormat[];
     audioFormats: VideoInfoResponseFormat[];
   }>(null);
+
+  const anyLoading = isLoading || downloadIsLoading;
 
   async function handleFetchVideo() {
     if (!videoUrl) {
@@ -38,13 +45,19 @@ export default function HomePage() {
           const isAudioOnly =
             format.vcodec === "none" && format.acodec !== "none";
 
-          if (isVideo) videoFormats.push(format);
-          if (isAudioOnly) audioFormats.push(format);
+          if (isVideo) {
+            videoFormats.push(format);
+          }
+
+          if (isAudioOnly) {
+            audioFormats.push(format);
+          }
         });
       }
 
       setVideoData({
         title: data.title,
+        thumbnail: data.thumbnail,
         videoFormats,
         audioFormats,
       });
@@ -58,7 +71,6 @@ export default function HomePage() {
 
   async function handleDownload(
     type: VideoInfoResponse["_type"],
-    format: VideoInfoResponse["format"],
     quality: VideoInfoResponse["quality"],
     formatNote: VideoInfoResponseFormat["format_note"],
   ) {
@@ -69,10 +81,17 @@ export default function HomePage() {
 
     setDownloadIsLoading(true);
 
+    const payload: DownloadRequestPayload = {
+      url: videoUrl,
+      type,
+      quality,
+      format_note: formatNote,
+    };
+
     try {
       const response = await apiInstance.post<Blob>(
         "/api/video/download",
-        { url: videoUrl, type, format, quality, format_note: formatNote },
+        payload,
         { responseType: "blob" },
       );
 
@@ -80,8 +99,7 @@ export default function HomePage() {
       const link = document.createElement("a");
 
       link.href = url;
-
-      link.setAttribute("download", `${type}_${quality}.${format}`);
+      link.setAttribute("download", `${type}_${quality}.${formatNote}`);
 
       document.body.appendChild(link);
 
@@ -96,101 +114,185 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-linear-to-b from-indigo-50 to-white px-4 py-10">
-      <h1 className="mb-6 text-center text-4xl font-bold text-indigo-700">
-        Video Downloader
+    <div className="flex min-h-screen flex-col items-center bg-gray-50 p-6">
+      <h1 className="mb-6 text-3xl font-bold text-gray-800">
+        YouTube Downloader
       </h1>
 
-      <div className="w-full max-w-3xl">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-          <input
-            type="text"
-            placeholder="Enter video URL..."
-            className="flex-1 rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-          />
-          <button
-            className={`rounded-lg bg-indigo-600 px-6 py-3 text-white transition hover:bg-indigo-700 ${
-              isLoading ? "cursor-not-allowed opacity-50" : ""
-            }`}
-            onClick={handleFetchVideo}
-            disabled={isLoading}
-          >
-            {isLoading ? "Fetching..." : "Fetch Video"}
-          </button>
-        </div>
+      <div className="mb-6 flex w-full max-w-2xl flex-col gap-4 sm:flex-row">
+        <input
+          type="text"
+          placeholder="Enter video URL"
+          className="flex-1 rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          value={videoUrl}
+          onChange={(e) => setVideoUrl(e.target.value)}
+          disabled={anyLoading}
+        />
+        <button
+          className={`flex items-center justify-center rounded-lg bg-blue-500 px-6 py-3 text-white transition hover:bg-blue-600 ${anyLoading && "cursor-not-allowed opacity-50"}`}
+          onClick={handleFetchVideo}
+          disabled={anyLoading}
+        >
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <svg
+                className="h-5 w-5 animate-spin text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                ></path>
+              </svg>
+              Fetching...
+            </span>
+          ) : (
+            "Fetch Info"
+          )}
+        </button>
+      </div>
 
-        {videoData && (
-          <div className="rounded-xl bg-white p-6 shadow-lg">
-            <h2 className="mb-4 text-2xl font-semibold">{videoData.title}</h2>
+      {videoData && (
+        <div className="w-full max-w-3xl space-y-6">
+          <div className="mb-4 flex items-center gap-4">
+            {videoData.thumbnail && (
+              <img
+                src={videoData.thumbnail}
+                alt="Video Thumbnail"
+                className="h-20 w-32 rounded-lg object-cover shadow"
+              />
+            )}
+            <h2 className="text-xl font-semibold text-gray-700">
+              {videoData.title}
+            </h2>
+          </div>
 
-            <div className="mb-6">
-              <h3 className="mb-2 text-lg font-medium">Video Formats</h3>
+          {videoData.videoFormats.length > 0 && (
+            <div>
+              <h3 className="mb-2 text-lg font-medium text-gray-600">
+                Video Formats
+              </h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                 {videoData.videoFormats.map((format) => (
                   <div
                     key={format.format_id}
-                    className="flex flex-col justify-between rounded-lg border p-4 transition hover:shadow-lg"
+                    className="flex flex-col justify-between rounded-lg bg-white p-4 shadow transition hover:shadow-lg"
                   >
-                    <div>
-                      <p className="font-semibold">
-                        {format.resolution || "Unknown"} | {format.format_note}
-                      </p>
-                      <p className="text-sm text-gray-500">Ext: {format.ext}</p>
+                    <div className="mb-2 font-medium text-gray-800">
+                      {format.format_note || "Unknown"} — Quality{" "}
+                      {format.format_id}
                     </div>
                     <button
-                      className="mt-2 rounded bg-green-500 px-3 py-1 text-sm text-white transition hover:bg-green-600"
+                      className={`mt-2 flex items-center justify-center rounded-lg bg-green-500 py-2 text-white transition hover:bg-green-600 ${anyLoading && "cursor-not-allowed opacity-50"}`}
                       onClick={() =>
                         handleDownload(
                           "video",
-                          format.ext,
-                          format.quality || 0,
-                          format.format_note,
+                          Number(format.format_id),
+                          format.format_note || "mp4",
                         )
                       }
-                      disabled={downloadIsLoading}
+                      disabled={anyLoading}
                     >
-                      {downloadIsLoading ? "Downloading..." : "Download"}
+                      {downloadIsLoading ? (
+                        <svg
+                          className="h-5 w-5 animate-spin text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8H4z"
+                          ></path>
+                        </svg>
+                      ) : (
+                        "Download"
+                      )}
                     </button>
                   </div>
                 ))}
               </div>
             </div>
+          )}
 
+          {videoData.audioFormats.length > 0 && (
             <div>
-              <h3 className="mb-2 text-lg font-medium">Audio Formats</h3>
+              <h3 className="mb-2 text-lg font-medium text-gray-600">
+                Audio Formats
+              </h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                 {videoData.audioFormats.map((format) => (
                   <div
                     key={format.format_id}
-                    className="flex flex-col justify-between rounded-lg border p-4 transition hover:shadow-lg"
+                    className="flex flex-col justify-between rounded-lg bg-white p-4 shadow transition hover:shadow-lg"
                   >
-                    <div>
-                      <p className="font-semibold">{format.format_note}</p>
-                      <p className="text-sm text-gray-500">Ext: {format.ext}</p>
+                    <div className="mb-2 font-medium text-gray-800">
+                      {format.format_note || "Audio"} — Quality{" "}
+                      {format.format_id}
                     </div>
                     <button
-                      className="mt-2 rounded bg-purple-500 px-3 py-1 text-sm text-white transition hover:bg-purple-600"
+                      className={`mt-2 flex items-center justify-center rounded-lg bg-purple-500 py-2 text-white transition hover:bg-purple-600 ${anyLoading && "cursor-not-allowed opacity-50"}`}
                       onClick={() =>
                         handleDownload(
                           "audio",
-                          format.ext,
-                          format.quality || 0,
-                          format.format_note,
+                          Number(format.format_id),
+                          format.format_note || "mp3",
                         )
                       }
-                      disabled={downloadIsLoading}
+                      disabled={anyLoading}
                     >
-                      {downloadIsLoading ? "Downloading..." : "Download"}
+                      {downloadIsLoading ? (
+                        <svg
+                          className="h-5 w-5 animate-spin text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8H4z"
+                          ></path>
+                        </svg>
+                      ) : (
+                        "Download"
+                      )}
                     </button>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

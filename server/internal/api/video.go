@@ -38,7 +38,6 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		URL        string `json:"url"`
 		Type       string `json:"type"`
-		Format     string `json:"format"`
 		Quality    int    `json:"quality"`
 		FormatNote string `json:"format_note"`
 	}
@@ -58,7 +57,6 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	reader, err := yt.DownloadBinary(core.DownloadConfig{
 		URL:        req.URL,
 		Type:       dType,
-		Format:     req.Format,
 		Quality:    req.Quality,
 		FormatNote: req.FormatNote,
 	})
@@ -69,8 +67,7 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	ext := "mp4"
 	contentType := "video/mp4"
-	if dType == core.Audio && req.Format != "" {
-		ext = req.Format
+	if dType == core.Audio {
 		contentType = "audio/mpeg"
 	}
 

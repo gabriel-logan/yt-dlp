@@ -20,8 +20,7 @@ const (
 type DownloadConfig struct {
 	URL        string
 	Type       DownloadType
-	Format     string
-	Quality    int
+	Quality    int    // Ex: 0, 5, 6, 7, etc.
 	FormatNote string // Ex: "720p60", "1080p60", 480p", etc.
 }
 
@@ -49,15 +48,22 @@ func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 	switch cfg.Type {
 	case Audio:
 		args = append(args, "-f", "bestaudio")
-		if cfg.Format != "" {
-			args = append(args, "--extract-audio", "--audio-format", cfg.Format)
-		}
-	case Video:
-		// USAR FORMAT_NOTE DIRETAMENTE
-		format := "best" // fallback
+		args = append(args, "--extract-audio")
+
+		format := "best"
 		if cfg.FormatNote != "" {
 			format = cfg.FormatNote
 		}
+
+		if cfg.FormatNote != "" {
+			args = append(args, "--audio-format", format)
+		}
+	case Video:
+		format := "best"
+		if cfg.FormatNote != "" {
+			format = cfg.FormatNote
+		}
+
 		args = append(args, "-f", format)
 	}
 
