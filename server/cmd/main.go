@@ -20,7 +20,7 @@ func main() {
 	const requestsTimeout = 2 * time.Minute
 
 	if err := godotenv.Load(); err != nil {
-		log.Println("Error loading .env file")
+		log.Fatal("Error loading .env file")
 	}
 
 	serverPort := os.Getenv("SERVER_PORT")
