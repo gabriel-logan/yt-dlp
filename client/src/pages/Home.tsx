@@ -131,7 +131,8 @@ export default function HomePage() {
           />
           <button
             onClick={handleFetchVideo}
-            className="rounded-lg bg-blue-600 px-6 py-3 text-white transition hover:bg-blue-700"
+            className={`rounded-lg bg-blue-600 px-6 py-3 text-white transition hover:bg-blue-700 ${loading && "cursor-not-allowed opacity-60"}`}
+            disabled={loading || downloadLoading}
           >
             {loading ? "Loading..." : "Fetch"}
           </button>
@@ -152,6 +153,7 @@ export default function HomePage() {
                         handleDownload("video", f.format, f.quality);
                       }}
                       className="rounded-lg bg-green-500 px-4 py-2 text-white transition hover:bg-green-600"
+                      disabled={loading || downloadLoading}
                     >
                       {f.quality}p
                     </button>
@@ -171,6 +173,7 @@ export default function HomePage() {
                         handleDownload("audio", f.format, f.quality);
                       }}
                       className="rounded-lg bg-purple-500 px-4 py-2 text-white transition hover:bg-purple-600"
+                      disabled={loading || downloadLoading}
                     >
                       {f.quality}kbps
                     </button>
