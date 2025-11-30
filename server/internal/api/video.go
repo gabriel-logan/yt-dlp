@@ -73,7 +73,7 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	yt, err := getYTCore()
 	if err != nil {
-		http.Error(w, fmt.Sprintf("error initializing YTCore: %v", err), http.StatusInternalServerError)
+		http.Error(w, "init error", http.StatusInternalServerError)
 		return
 	}
 
@@ -84,29 +84,31 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		FormatNote: req.FormatNote,
 	})
 	if err != nil {
-		http.Error(w, fmt.Sprintf("download failed: %v", err), http.StatusInternalServerError)
+		http.Error(w, "yt-dlp failed", http.StatusInternalServerError)
 		return
 	}
 
-	ext := "mp4"
-	contentType := "video/mp4"
-	if dType == core.Audio {
-		contentType = "audio/mpeg"
+	if stderrPipe, _ := cmd.StderrPipe(); stderrPipe != nil {
+		go io.Copy(io.Discard, stderrPipe)
 	}
 
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=video.%s", ext))
-	w.Header().Set("Content-Type", contentType)
-
-	done := make(chan struct{})
+	buf := make([]byte, 256*1024)
 
 	go func() {
-		io.Copy(w, reader)
-		close(done)
+		<-r.Context().Done()
+		cmd.Process.Kill()
+		cmd.Wait()
 	}()
 
-	select {
-	case <-r.Context().Done():
-		cmd.Process.Kill()
-	case <-done:
+	_, copyErr := io.CopyBuffer(w, reader, buf)
+
+	cmd.Wait()
+
+	if copyErr != nil {
+		return
+	}
+
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
 	}
 }
