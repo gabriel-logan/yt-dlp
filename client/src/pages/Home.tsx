@@ -60,6 +60,7 @@ export default function HomePage() {
     type: VideoInfoResponse["_type"],
     format: VideoInfoResponse["format"],
     quality: VideoInfoResponse["quality"],
+    formatNote: VideoInfoResponseFormat["format_note"],
   ) {
     if (!videoUrl) {
       alert("Please enter a video URL.");
@@ -71,7 +72,7 @@ export default function HomePage() {
     try {
       const response = await apiInstance.post<Blob>(
         "/api/video/download",
-        { url: videoUrl, type, format, quality },
+        { url: videoUrl, type, format, quality, format_note: formatNote },
         { responseType: "blob" },
       );
 
@@ -141,7 +142,12 @@ export default function HomePage() {
                     <button
                       className="mt-2 rounded bg-green-500 px-3 py-1 text-sm text-white transition hover:bg-green-600"
                       onClick={() =>
-                        handleDownload("video", format.ext, format.quality || 0)
+                        handleDownload(
+                          "video",
+                          format.ext,
+                          format.quality || 0,
+                          format.format_note,
+                        )
                       }
                       disabled={downloadIsLoading}
                     >
@@ -167,7 +173,12 @@ export default function HomePage() {
                     <button
                       className="mt-2 rounded bg-purple-500 px-3 py-1 text-sm text-white transition hover:bg-purple-600"
                       onClick={() =>
-                        handleDownload("audio", format.ext, format.quality || 0)
+                        handleDownload(
+                          "audio",
+                          format.ext,
+                          format.quality || 0,
+                          format.format_note,
+                        )
                       }
                       disabled={downloadIsLoading}
                     >

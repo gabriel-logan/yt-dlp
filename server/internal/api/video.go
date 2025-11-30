@@ -36,10 +36,11 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		URL     string `json:"url"`
-		Type    string `json:"type"`    // "video" or "audio"
-		Format  string `json:"format"`  // "mp4", "mp3", etc
-		Quality string `json:"quality"` // "best", "720", etc
+		URL        string `json:"url"`
+		Type       string `json:"type"`
+		Format     string `json:"format"`
+		Quality    int    `json:"quality"`
+		FormatNote string `json:"format_note"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -55,10 +56,11 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	yt, _ := core.InitYTCore()
 
 	reader, err := yt.DownloadBinary(core.DownloadConfig{
-		URL:     req.URL,
-		Type:    dType,
-		Format:  req.Format,
-		Quality: req.Quality,
+		URL:        req.URL,
+		Type:       dType,
+		Format:     req.Format,
+		Quality:    req.Quality,
+		FormatNote: req.FormatNote,
 	})
 	if err != nil {
 		http.Error(w, fmt.Sprintf("download failed: %v", err), http.StatusInternalServerError)

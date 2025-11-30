@@ -18,10 +18,11 @@ const (
 )
 
 type DownloadConfig struct {
-	URL     string
-	Type    DownloadType
-	Format  string
-	Quality string
+	URL        string
+	Type       DownloadType
+	Format     string
+	Quality    int
+	FormatNote string // Ex: "720p60", "1080p60", 480p", etc.
 }
 
 type YTCore struct {
@@ -43,7 +44,7 @@ func InitYTCore() (*YTCore, error) {
 }
 
 func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
-	args := []string{"-o", "-"} // output to stdout
+	args := []string{"-o", "-"}
 
 	switch cfg.Type {
 	case Audio:
@@ -52,12 +53,10 @@ func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 			args = append(args, "--extract-audio", "--audio-format", cfg.Format)
 		}
 	case Video:
-		format := "best"
-		if cfg.Quality != "" {
-			format = fmt.Sprintf("best[height<=%s]", cfg.Quality)
-		}
-		if cfg.Format != "" {
-			format += fmt.Sprintf("[ext=%s]", cfg.Format)
+		// USAR FORMAT_NOTE DIRETAMENTE
+		format := "best" // fallback
+		if cfg.FormatNote != "" {
+			format = cfg.FormatNote
 		}
 		args = append(args, "-f", format)
 	}
@@ -74,10 +73,9 @@ func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 	}
 
 	if err := cmd.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start yt-dlp: %v", err)
+		return nil, fmt.Errorf("failed to start yt-dlp: %v, details: %s", err, stderr.String())
 	}
 
-	// Retorna o stdout diretamente como reader
 	return stdoutPipe, nil
 }
 
