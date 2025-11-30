@@ -17,7 +17,7 @@ import (
 func main() {
 	const serverHttp = "http"
 	const serverHost = "localhost"
-	const requestsTimeout = 2 * time.Minute
+	const requestsTimeout = 5 * time.Minute
 
 	cwd, err := os.Getwd()
 	if err != nil {
