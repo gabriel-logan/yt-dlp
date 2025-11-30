@@ -8,6 +8,10 @@ import (
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/hello" {
+			next.ServeHTTP(w, r)
+			return
+		}
 
 		if strings.HasPrefix(r.URL.Path, "/api") {
 			apiKeyFromEnv := os.Getenv("VITE_X_API_KEY")
