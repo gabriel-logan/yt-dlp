@@ -19,18 +19,16 @@ func main() {
 	const serverHost = "localhost"
 	const requestsTimeout = 2 * time.Minute
 
-	if err := godotenv.Load("../.env"); err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	serverPort := os.Getenv("SERVER_PORT")
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		panic(fmt.Sprintf("failed to get current directory: %v", err))
 	}
 
-	webDistPath := filepath.Join(cwd, "..", "client", "dist")
+	envPath := filepath.Join(cwd, "..", ".env")
+
+	if err := godotenv.Load(envPath); err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	mux := http.NewServeMux()
 
@@ -38,6 +36,8 @@ func main() {
 	if err := api.RegisterAPIRoutes(mux); err != nil {
 		panic(err)
 	}
+
+	webDistPath := filepath.Join(cwd, "..", "client", "dist")
 
 	// SPA Handler
 	if err := web.RegisterSPA(mux, webDistPath); err != nil {
@@ -52,8 +52,10 @@ func main() {
 		middleware.Timeout(requestsTimeout),
 	)
 
+	serverPort := os.Getenv("SERVER_PORT")
+
 	server := http.Server{
-		Addr:    serverHost + ":" + serverPort,
+		Addr:    ":" + serverPort,
 		Handler: stack(mux),
 	}
 
