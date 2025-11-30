@@ -1,12 +1,9 @@
 import { useState } from "react";
 
+import handleDownload from "../actions/handleDownload";
+import handleFetchVideo from "../actions/handleFetchVideo";
 import Loading from "../components/Loading";
-import apiInstance from "../lib/apiInstance";
-import type {
-  DownloadRequestPayload,
-  VideoInfoResponse,
-  VideoInfoResponseFormat,
-} from "../types";
+import type { VideoInfoResponse, VideoInfoResponseFormat } from "../types";
 
 export default function HomePage() {
   const [videoUrl, setVideoUrl] = useState("");
@@ -20,107 +17,6 @@ export default function HomePage() {
   }>(null);
 
   const anyLoading = isLoading || downloadIsLoading;
-
-  async function handleFetchVideo() {
-    if (!videoUrl) {
-      alert("Please enter a video URL.");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const response = await apiInstance.get<VideoInfoResponse>(
-        "/api/video/info",
-        { params: { url: videoUrl } },
-      );
-
-      const data = response.data;
-
-      const videoFormats: VideoInfoResponseFormat[] = [];
-      const audioFormats: VideoInfoResponseFormat[] = [];
-
-      if (Array.isArray(data.formats)) {
-        data.formats.forEach((format) => {
-          const isVideo = format.vcodec !== "none" && format.acodec !== "none";
-          const isAudioOnly =
-            format.vcodec === "none" && format.acodec !== "none";
-
-          if (isVideo) {
-            videoFormats.push(format);
-          }
-
-          if (isAudioOnly) {
-            audioFormats.push(format);
-          }
-        });
-      }
-
-      setVideoData({
-        title: data.title,
-        thumbnail: data.thumbnail,
-        videoFormats,
-        audioFormats,
-      });
-    } catch (error) {
-      console.error("Error fetching video info:", error);
-      alert("Failed to fetch video info.");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function handleDownload(
-    type: VideoInfoResponse["_type"],
-    quality: VideoInfoResponse["quality"],
-    format: VideoInfoResponseFormat,
-    formatNote: VideoInfoResponseFormat["format_note"],
-  ) {
-    if (!videoUrl) {
-      alert("Please enter a video URL.");
-      return;
-    }
-
-    setDownloadIsLoading(true);
-
-    const payload: DownloadRequestPayload = {
-      url: videoUrl,
-      type,
-      quality,
-      format_note: formatNote,
-    };
-
-    try {
-      const response = await apiInstance.post<Blob>(
-        "/api/video/download",
-        payload,
-        { responseType: "blob" },
-      );
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-
-      link.href = url;
-      const extension =
-        type === "video"
-          ? format.video_ext || "mp4"
-          : format.audio_ext || "mp3";
-      link.setAttribute(
-        "download",
-        `${videoData?.title || type}_${quality}.${extension}`,
-      );
-
-      document.body.appendChild(link);
-
-      link.click();
-      link.remove();
-    } catch (error) {
-      console.error("Download error:", error);
-      alert("Failed to download.");
-    } finally {
-      setDownloadIsLoading(false);
-    }
-  }
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-gray-50 p-6">
@@ -145,7 +41,13 @@ export default function HomePage() {
         />
         <button
           className={`flex items-center justify-center rounded-lg bg-blue-500 px-6 py-3 text-white transition hover:bg-blue-600 ${anyLoading && "cursor-not-allowed opacity-50"}`}
-          onClick={handleFetchVideo}
+          onClick={() =>
+            handleFetchVideo({
+              videoUrl,
+              setIsLoading,
+              setVideoData,
+            })
+          }
           disabled={anyLoading}
         >
           {isLoading ? "Fetching..." : "Fetch Info"}
@@ -185,12 +87,19 @@ export default function HomePage() {
                     <button
                       className={`mt-2 flex items-center justify-center rounded-lg bg-green-500 py-2 text-white transition hover:bg-green-600 ${anyLoading && "cursor-not-allowed opacity-50"}`}
                       onClick={() =>
-                        handleDownload(
-                          "video",
-                          format.quality || 7,
-                          format,
-                          format.format_note,
-                        )
+                        handleDownload({
+                          body: {
+                            type: "video",
+                            quality: format.quality || 0,
+                            format,
+                            formatNote: format.format_note,
+                          },
+                          videoUrl,
+                          videoData: {
+                            title: videoData.title,
+                          },
+                          setDownloadIsLoading,
+                        })
                       }
                       disabled={anyLoading}
                     >
@@ -221,12 +130,19 @@ export default function HomePage() {
                     <button
                       className={`mt-2 flex items-center justify-center rounded-lg bg-purple-500 py-2 text-white transition hover:bg-purple-600 ${anyLoading && "cursor-not-allowed opacity-50"}`}
                       onClick={() =>
-                        handleDownload(
-                          "audio",
-                          format.quality || 3,
-                          format,
-                          format.format_note,
-                        )
+                        handleDownload({
+                          body: {
+                            type: "audio",
+                            quality: format.quality || 0,
+                            format,
+                            formatNote: format.format_note,
+                          },
+                          videoUrl,
+                          videoData: {
+                            title: videoData.title,
+                          },
+                          setDownloadIsLoading,
+                        })
                       }
                       disabled={anyLoading}
                     >
