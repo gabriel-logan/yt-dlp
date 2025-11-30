@@ -45,26 +45,19 @@ func InitYTCore() (*YTCore, error) {
 func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
 	args := []string{"-o", "-"}
 
+	formatNote := "best"
+	if cfg.FormatNote != "" {
+		formatNote = cfg.FormatNote
+	}
+
 	switch cfg.Type {
 	case Audio:
 		args = append(args, "-f", "bestaudio")
 		args = append(args, "--extract-audio")
 
-		format := "best"
-		if cfg.FormatNote != "" {
-			format = cfg.FormatNote
-		}
-
-		if cfg.FormatNote != "" {
-			args = append(args, "--audio-format", format)
-		}
+		args = append(args, "--audio-format", formatNote)
 	case Video:
-		format := "best"
-		if cfg.FormatNote != "" {
-			format = cfg.FormatNote
-		}
-
-		args = append(args, "-f", format)
+		args = append(args, "-f", formatNote)
 	}
 
 	args = append(args, cfg.URL)

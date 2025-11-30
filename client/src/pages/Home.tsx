@@ -123,7 +123,7 @@ export default function HomePage() {
         <input
           type="text"
           placeholder="Enter video URL"
-          className="flex-1 rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className={`grow rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none ${anyLoading && "cursor-not-allowed bg-gray-100"}`}
           value={videoUrl}
           onChange={(e) => setVideoUrl(e.target.value)}
           disabled={anyLoading}
@@ -190,16 +190,16 @@ export default function HomePage() {
                     className="flex flex-col justify-between rounded-lg bg-white p-4 shadow transition hover:shadow-lg"
                   >
                     <div className="mb-2 font-medium text-gray-800">
-                      {format.format_note || "Unknown"} — Quality{" "}
-                      {format.format_id}
+                      {format.format || "Unknown"} -{" "}
+                      {format.video_ext || "No Audio"}{" "}
                     </div>
                     <button
                       className={`mt-2 flex items-center justify-center rounded-lg bg-green-500 py-2 text-white transition hover:bg-green-600 ${anyLoading && "cursor-not-allowed opacity-50"}`}
                       onClick={() =>
                         handleDownload(
                           "video",
-                          Number(format.format_id),
-                          format.format_note || "mp4",
+                          format.quality || 7,
+                          format.format_note,
                         )
                       }
                       disabled={anyLoading}
@@ -247,16 +247,17 @@ export default function HomePage() {
                     className="flex flex-col justify-between rounded-lg bg-white p-4 shadow transition hover:shadow-lg"
                   >
                     <div className="mb-2 font-medium text-gray-800">
-                      {format.format_note || "Audio"} — Quality{" "}
-                      {format.format_id}
+                      {format.audio_ext || "No Audio"} -{" "}
+                      {format.abr || "Unknown"} kbps -{" "}
+                      {format.format_note || "Unknown"}
                     </div>
                     <button
                       className={`mt-2 flex items-center justify-center rounded-lg bg-purple-500 py-2 text-white transition hover:bg-purple-600 ${anyLoading && "cursor-not-allowed opacity-50"}`}
                       onClick={() =>
                         handleDownload(
                           "audio",
-                          Number(format.format_id),
-                          format.format_note || "mp3",
+                          format.quality || 3,
+                          format.format_note,
                         )
                       }
                       disabled={anyLoading}
