@@ -8,6 +8,7 @@
 *.so
 *.dylib
 yt_dlp_server
+deploy.sh
 
 # Test binary, built with `go test -c`
 *.test
