@@ -24,9 +24,7 @@ export default function HomePage() {
     try {
       const response = await apiInstance.get<VideoInfoResponse>(
         "/api/video/info",
-        {
-          params: { url: videoUrl },
-        },
+        { params: { url: videoUrl } },
       );
 
       const data = response.data;
@@ -35,47 +33,20 @@ export default function HomePage() {
       const audioFormats: VideoInfoResponseFormat[] = [];
 
       if (Array.isArray(data.formats)) {
-        data.formats.forEach(function (format) {
+        data.formats.forEach((format) => {
           const isVideo = format.vcodec !== "none" && format.acodec !== "none";
           const isAudioOnly =
             format.vcodec === "none" && format.acodec !== "none";
 
-          if (isVideo) {
-            videoFormats.push({
-              format: "mp4",
-              quality: format.quality,
-              format_id: format.format_id,
-              ext: format.ext,
-              acodec: format.acodec,
-              vcodec: format.vcodec,
-              audio_ext: format.audio_ext,
-              video_ext: format.video_ext,
-              resolution: format.resolution,
-              format_note: format.format_note,
-            });
-          }
-
-          if (isAudioOnly) {
-            audioFormats.push({
-              format: "mp3",
-              quality: format.quality,
-              format_id: format.format_id,
-              ext: format.ext,
-              acodec: format.acodec,
-              vcodec: format.vcodec,
-              audio_ext: format.audio_ext,
-              video_ext: format.video_ext,
-              resolution: format.resolution,
-              format_note: format.format_note,
-            });
-          }
+          if (isVideo) videoFormats.push(format);
+          if (isAudioOnly) audioFormats.push(format);
         });
       }
 
       setVideoData({
         title: data.title,
-        videoFormats: videoFormats,
-        audioFormats: audioFormats,
+        videoFormats,
+        audioFormats,
       });
     } catch (error) {
       console.error("Error fetching video info:", error);
@@ -100,12 +71,7 @@ export default function HomePage() {
     try {
       const response = await apiInstance.post<Blob>(
         "/api/video/download",
-        {
-          url: videoUrl,
-          type: type,
-          format: format,
-          quality: quality,
-        },
+        { url: videoUrl, type, format, quality },
         { responseType: "blob" },
       );
 
@@ -129,78 +95,86 @@ export default function HomePage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-gray-100 p-4">
-      {downloadIsLoading && (
-        <div className="bg-opacity-50 absolute inset-0 z-50 flex items-center justify-center bg-black">
-          <div className="text-xl font-semibold text-white">Downloading...</div>
-        </div>
-      )}
+    <div className="flex min-h-screen flex-col items-center bg-linear-to-b from-indigo-50 to-white px-4 py-10">
+      <h1 className="mb-6 text-center text-4xl font-bold text-indigo-700">
+        Video Downloader
+      </h1>
 
-      <div className="z-10 w-full max-w-xl rounded-xl bg-white p-8 shadow-lg">
-        <h1 className="mb-6 text-center text-3xl font-bold">
-          Video Downloader
-        </h1>
-
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+      <div className="w-full max-w-3xl">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row">
           <input
             type="text"
-            placeholder="Paste video URL here"
+            placeholder="Enter video URL..."
+            className="flex-1 rounded-lg border border-gray-300 p-3 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
             value={videoUrl}
-            onChange={function (e) {
-              setVideoUrl(e.target.value);
-            }}
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            onChange={(e) => setVideoUrl(e.target.value)}
           />
           <button
+            className={`rounded-lg bg-indigo-600 px-6 py-3 text-white transition hover:bg-indigo-700 ${
+              isLoading ? "cursor-not-allowed opacity-50" : ""
+            }`}
             onClick={handleFetchVideo}
-            className={`rounded-lg bg-blue-600 px-6 py-3 text-white transition hover:bg-blue-700 ${isLoading && "cursor-not-allowed opacity-60"}`}
-            disabled={isLoading || downloadIsLoading}
+            disabled={isLoading}
           >
-            {isLoading ? "Loading..." : "Fetch"}
+            {isLoading ? "Fetching..." : "Fetch Video"}
           </button>
         </div>
 
         {videoData && (
-          <div>
-            <h2 className="mb-4 text-xl font-semibold">{videoData.title}</h2>
+          <div className="rounded-xl bg-white p-6 shadow-lg">
+            <h2 className="mb-4 text-2xl font-semibold">{videoData.title}</h2>
 
-            <div className="mb-4">
-              <h3 className="mb-2 font-medium">Download Video:</h3>
-              <div className="flex flex-wrap gap-2">
-                {videoData.videoFormats.map(function (f) {
-                  return (
+            <div className="mb-6">
+              <h3 className="mb-2 text-lg font-medium">Video Formats</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                {videoData.videoFormats.map((format) => (
+                  <div
+                    key={format.format_id}
+                    className="flex flex-col justify-between rounded-lg border p-4 transition hover:shadow-lg"
+                  >
+                    <div>
+                      <p className="font-semibold">
+                        {format.resolution || "Unknown"} | {format.format_note}
+                      </p>
+                      <p className="text-sm text-gray-500">Ext: {format.ext}</p>
+                    </div>
                     <button
-                      key={f.quality}
-                      onClick={function () {
-                        handleDownload("video", f.format, f.quality || 6);
-                      }}
-                      className="rounded-lg bg-green-500 px-4 py-2 text-white transition hover:bg-green-600"
-                      disabled={isLoading || downloadIsLoading}
+                      className="mt-2 rounded bg-green-500 px-3 py-1 text-sm text-white transition hover:bg-green-600"
+                      onClick={() =>
+                        handleDownload("video", format.ext, format.quality || 0)
+                      }
+                      disabled={downloadIsLoading}
                     >
-                      {f.quality}p
+                      {downloadIsLoading ? "Downloading..." : "Download"}
                     </button>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
 
             <div>
-              <h3 className="mb-2 font-medium">Download Audio:</h3>
-              <div className="flex flex-wrap gap-2">
-                {videoData.audioFormats.map(function (f) {
-                  return (
+              <h3 className="mb-2 text-lg font-medium">Audio Formats</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                {videoData.audioFormats.map((format) => (
+                  <div
+                    key={format.format_id}
+                    className="flex flex-col justify-between rounded-lg border p-4 transition hover:shadow-lg"
+                  >
+                    <div>
+                      <p className="font-semibold">{format.format_note}</p>
+                      <p className="text-sm text-gray-500">Ext: {format.ext}</p>
+                    </div>
                     <button
-                      key={f.quality}
-                      onClick={function () {
-                        handleDownload("audio", f.format, f.quality || 6);
-                      }}
-                      className="rounded-lg bg-purple-500 px-4 py-2 text-white transition hover:bg-purple-600"
-                      disabled={isLoading || downloadIsLoading}
+                      className="mt-2 rounded bg-purple-500 px-3 py-1 text-sm text-white transition hover:bg-purple-600"
+                      onClick={() =>
+                        handleDownload("audio", format.ext, format.quality || 0)
+                      }
+                      disabled={downloadIsLoading}
                     >
-                      {f.quality}kbps
+                      {downloadIsLoading ? "Downloading..." : "Download"}
                     </button>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
