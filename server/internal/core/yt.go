@@ -43,22 +43,48 @@ func InitYTCore() (*YTCore, error) {
 }
 
 func (yt *YTCore) DownloadBinary(cfg DownloadConfig) (io.Reader, error) {
-	args := []string{"-o", "-"}
+	args := []string{"--no-part", "--no-continue", "-o", "-"}
 
-	formatNote := "best"
-	if cfg.FormatNote != "" {
-		formatNote = cfg.FormatNote
-	}
-
+	var fmtSel string
 	switch cfg.Type {
 	case Audio:
-		args = append(args, "--extract-audio")
-		args = append(args, "-f", formatNote)
+		if cfg.FormatNote != "" {
+			fmtSel = fmt.Sprintf("ba[format_note=%s]/ba/bestaudio", cfg.FormatNote)
+		} else {
+			audioABR := []int{64, 96, 128, 160, 192, 256, 320}
+			idx := cfg.Quality
+			if idx < 0 {
+				idx = 0
+			}
+			if idx >= len(audioABR) {
+				idx = len(audioABR) - 1
+			}
+			target := audioABR[idx]
+			fmtSel = fmt.Sprintf("ba[abr<=?%d]/bestaudio", target)
+		}
+
 	case Video:
-		args = append(args, "-f", formatNote)
+		if cfg.FormatNote != "" {
+			fmtSel = fmt.Sprintf("bv*[format_note=%s]+ba/b[format_note=%s]/b", cfg.FormatNote, cfg.FormatNote)
+		} else {
+			heights := []int{144, 240, 360, 480, 720, 1080, 1440, 2160}
+			idx := cfg.Quality
+			if idx < 0 {
+				idx = 0
+			}
+			if idx >= len(heights) {
+				idx = len(heights) - 1
+			}
+			h := heights[idx]
+			fmtSel = fmt.Sprintf("bv*[height<=?%d]+ba/b[height<=?%d]/b", h, h)
+		}
+		args = append(args, "--merge-output-format", "mkv")
+
+	default:
+		return nil, fmt.Errorf("invalid download type")
 	}
 
-	args = append(args, cfg.URL)
+	args = append(args, "-f", fmtSel, cfg.URL)
 
 	cmd := exec.Command(yt.BinaryPath, args...)
 	var stderr bytes.Buffer
