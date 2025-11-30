@@ -1,6 +1,7 @@
 export interface VideoInfoResponse {
   id: string;
   title: string;
+  formats: VideoInfoResponseFormat[];
   thumbnail: string;
   description: string;
   duration: number;
@@ -32,5 +33,39 @@ export interface VideoInfoResponse {
   format: string;
   _filename: string;
   filename: string;
-  _type: string;
+  _type: "video" | "audio" | "unknown";
+}
+
+export interface VideoInfoResponseFormat {
+  format_note: string;
+  format_id: string;
+  ext: string;
+  acodec: string;
+  vcodec: string;
+  width?: number;
+  height?: number;
+  fps?: number;
+  rows?: number;
+  columns?: number;
+  audio_ext: string;
+  video_ext: string;
+  vbr?: number;
+  abr?: number;
+  tbr?: number;
+  resolution: string;
+  aspect_ratio?: number;
+  filesize_approx?: number;
+  format: string;
+  asr?: number;
+  filesize?: number;
+  source_preference?: number;
+  audio_channels?: number;
+  quality?: number;
+  has_drm?: boolean;
+  language?: string;
+  language_preference?: number;
+  dynamic_range?: string;
+  container?: string;
+  available_at?: number;
+  manifest_url?: string;
 }
