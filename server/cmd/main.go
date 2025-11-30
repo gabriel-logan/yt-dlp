@@ -11,11 +11,21 @@ import (
 	"github.com/gabriel-logan/yt-dlp/server/internal/api"
 	"github.com/gabriel-logan/yt-dlp/server/internal/middleware"
 	"github.com/gabriel-logan/yt-dlp/server/internal/web"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	cwd, err := os.Getwd()
+	const serverHttp = "http"
+	const serverHost = "localhost"
+	const requestsTimeout = 30 * time.Second
 
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	serverPort := os.Getenv("SERVER_PORT")
+
+	cwd, err := os.Getwd()
 	if err != nil {
 		panic(fmt.Sprintf("failed to get current directory: %v", err))
 	}
@@ -23,11 +33,6 @@ func main() {
 	webDistPath := filepath.Join(cwd, "..", "client", "dist")
 
 	mux := http.NewServeMux()
-
-	const serverHttp = "http"
-	const serverHost = "localhost"
-	const serverPort = "8080"
-	const requestsTimeout = 30 * time.Second
 
 	// API Routes
 	if err := api.RegisterAPIRoutes(mux); err != nil {
