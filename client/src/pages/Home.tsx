@@ -72,6 +72,7 @@ export default function HomePage() {
   async function handleDownload(
     type: VideoInfoResponse["_type"],
     quality: VideoInfoResponse["quality"],
+    format: VideoInfoResponseFormat,
     formatNote: VideoInfoResponseFormat["format_note"],
   ) {
     if (!videoUrl) {
@@ -99,7 +100,14 @@ export default function HomePage() {
       const link = document.createElement("a");
 
       link.href = url;
-      link.setAttribute("download", `${type}_${quality}.${formatNote}`);
+      const extension =
+        type === "video"
+          ? format.video_ext || "mp4"
+          : format.audio_ext || "mp3";
+      link.setAttribute(
+        "download",
+        `${videoData?.title || type}_${quality}.${extension}`,
+      );
 
       document.body.appendChild(link);
 
@@ -199,6 +207,7 @@ export default function HomePage() {
                         handleDownload(
                           "video",
                           format.quality || 7,
+                          format,
                           format.format_note,
                         )
                       }
@@ -257,6 +266,7 @@ export default function HomePage() {
                         handleDownload(
                           "audio",
                           format.quality || 3,
+                          format,
                           format.format_note,
                         )
                       }
