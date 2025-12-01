@@ -31,12 +31,11 @@ export default function HomePage() {
         Video / Audio Downloader
       </h1>
 
-      {/* Container principal */}
       <div className="mb-8 w-full max-w-3xl rounded-2xl border border-white/40 bg-white/80 p-4 shadow-lg backdrop-blur-xl sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row">
           <input
             type="text"
-            placeholder="Cole a URL do vídeo..."
+            placeholder="Paste the video URL..."
             className={`grow rounded-xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-700 shadow-sm transition focus:border-blue-500 focus:ring-4 focus:ring-blue-200/50 focus:outline-none ${
               anyLoading && "cursor-not-allowed bg-gray-100 opacity-70"
             }`}
@@ -59,14 +58,13 @@ export default function HomePage() {
             disabled={anyLoading}
           >
             <FiSearch size={18} />
-            {isLoading ? "Buscando..." : "Buscar"}
+            {isLoading ? "Fetching..." : "Fetch"}
           </button>
         </div>
       </div>
 
       {videoData && (
         <div className="w-full max-w-4xl space-y-10">
-          {/* Thumbnail + Title */}
           <div className="flex flex-col gap-4 rounded-2xl border border-white/40 bg-white/80 p-4 shadow-lg backdrop-blur-xl sm:flex-row sm:items-center sm:p-6">
             {videoData.thumbnail && (
               <img
@@ -81,13 +79,12 @@ export default function HomePage() {
             </h2>
           </div>
 
-          {/* VIDEO FORMATS */}
           {videoData.videoFormats.length > 0 && (
             <div>
               <div className="mb-4 flex items-center gap-2">
                 <FiVideo className="text-blue-600" size={20} />
                 <h3 className="text-xl font-semibold text-gray-700">
-                  Formatos de Vídeo
+                  Video Formats
                 </h3>
               </div>
 
@@ -131,13 +128,12 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* AUDIO FORMATS */}
           {videoData.audioFormats.length > 0 && (
             <div>
               <div className="mb-4 flex items-center gap-2">
                 <FiMusic className="text-purple-600" size={20} />
                 <h3 className="text-xl font-semibold text-gray-700">
-                  Formatos de Áudio
+                  Audio Formats
                 </h3>
               </div>
 
