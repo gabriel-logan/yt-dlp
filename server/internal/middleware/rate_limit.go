@@ -23,14 +23,6 @@ var RateLimits = map[string]MethodLimit{
 		Limiter: rate.NewLimiter(3, 6),
 		BanTime: 30,
 	},
-	"PUT": {
-		Limiter: rate.NewLimiter(1, 2),
-		BanTime: 30,
-	},
-	"DELETE": {
-		Limiter: rate.NewLimiter(1, 2),
-		BanTime: 60,
-	},
 }
 
 type clientState struct {
