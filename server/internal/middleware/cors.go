@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func CORSMiddleware(next http.Handler) http.Handler {
+func CORS(next http.Handler) http.Handler {
 	env := os.Getenv("GO_ENV")
 	clientURL := os.Getenv("CLIENT_URL")
 

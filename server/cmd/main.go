@@ -45,9 +45,9 @@ func main() {
 	stack := middleware.CreateChain(
 		middleware.Recover,
 		middleware.Logger,
-		middleware.CORSMiddleware,
+		middleware.CORS,
 		middleware.RateLimit,
-		middleware.AuthMiddleware,
+		middleware.Auth,
 		middleware.Timeout(requestsTimeout),
 	)
 
