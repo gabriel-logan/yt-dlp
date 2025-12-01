@@ -45,6 +45,10 @@ func InitYTCore() (*YTCore, error) {
 
 	binPath := filepath.Join(cwd, "..", "scripts", ytDlpScriptName)
 
+	if _, err := os.Stat(binPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("%s binary not found at path: %s", ytDlpScriptName, binPath)
+	}
+
 	return &YTCore{
 		BinaryPath: binPath,
 	}, nil
