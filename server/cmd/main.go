@@ -46,6 +46,7 @@ func main() {
 		middleware.Recover,
 		middleware.Logger,
 		middleware.CORSMiddleware,
+		middleware.RateLimit,
 		middleware.AuthMiddleware,
 		middleware.Timeout(requestsTimeout),
 	)
