@@ -41,7 +41,9 @@ func InitYTCore() (*YTCore, error) {
 		return nil, fmt.Errorf("failed to get current directory: %v", err)
 	}
 
-	binPath := filepath.Join(cwd, "..", "scripts", "yt-dlp")
+	ytDlpScriptName := os.Getenv("YT_DLP_SCRIPT_NAME")
+
+	binPath := filepath.Join(cwd, "..", "scripts", ytDlpScriptName)
 
 	return &YTCore{
 		BinaryPath: binPath,
