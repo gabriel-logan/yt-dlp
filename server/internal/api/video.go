@@ -111,7 +111,7 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := sendDownloadResponse(w, reader, cmd, dType); err != nil {
-		http.Error(w, "failed to stream data", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -123,16 +123,26 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 		w.Header().Set("Content-Type", "video/x-matroska")
 	}
 
-	if _, err := io.Copy(w, reader); err != nil {
-		return fmt.Errorf("failed to copy data to response: %v", err)
+	_, copyErr := io.Copy(w, reader)
+
+	reader.Close()
+
+	waitErr := cmd.Wait()
+
+	if copyErr != nil {
+		msg := copyErr.Error()
+
+		if strings.Contains(msg, "broken pipe") ||
+			strings.Contains(msg, "reset by peer") ||
+			strings.Contains(msg, "context canceled") {
+			return nil
+		}
+
+		return fmt.Errorf("copy error: %v", copyErr)
 	}
 
-	if err := reader.Close(); err != nil {
-		return fmt.Errorf("failed to close reader: %v", err)
-	}
-
-	if err := cmd.Wait(); err != nil {
-		return fmt.Errorf("yt-dlp command failed: %v", err)
+	if waitErr != nil {
+		return fmt.Errorf("yt-dlp error: %v", waitErr)
 	}
 
 	return nil
