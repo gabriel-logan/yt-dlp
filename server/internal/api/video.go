@@ -123,9 +123,9 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 		w.Header().Set("Content-Type", "video/x-matroska")
 	}
 
-	_, copyErr := io.Copy(w, reader)
+	defer reader.Close()
 
-	reader.Close()
+	_, copyErr := io.Copy(w, reader)
 
 	waitErr := cmd.Wait()
 
@@ -137,6 +137,8 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 			strings.Contains(msg, "context canceled") {
 			return nil
 		}
+
+		cmd.Process.Kill()
 
 		return fmt.Errorf("copy error: %v", copyErr)
 	}
