@@ -15,7 +15,7 @@ import (
 var (
 	ytCore      *core.YTCore
 	initErr     error
-	downloadSem = make(chan struct{}, 10) // limite de 10 downloads simultâneos
+	downloadSem = make(chan struct{}, 4) // limite de 4 downloads simultâneos
 	once        sync.Once
 )
 
@@ -127,12 +127,12 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 		return fmt.Errorf("failed to copy data to response: %v", err)
 	}
 
-	if err := cmd.Wait(); err != nil {
-		return fmt.Errorf("yt-dlp command failed: %v", err)
-	}
-
 	if err := reader.Close(); err != nil {
 		return fmt.Errorf("failed to close reader: %v", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("yt-dlp command failed: %v", err)
 	}
 
 	return nil
