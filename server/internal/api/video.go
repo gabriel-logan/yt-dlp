@@ -17,7 +17,6 @@ var (
 	initErr     error
 	downloadSem = make(chan struct{}, 10) // limite de 10 downloads simultâneos
 	once        sync.Once
-	wg          sync.WaitGroup
 )
 
 func getYTCore() (*core.YTCore, error) {
@@ -54,10 +53,7 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	downloadSem <- struct{}{}
-	defer func() {
-		<-downloadSem
-		wg.Wait() // Wait for all goroutines to finish
-	}()
+	defer func() { <-downloadSem }()
 
 	var req struct {
 		URL        string `json:"url"`
@@ -97,32 +93,27 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		dType = core.Audio
 	}
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	yt, err := getYTCore()
+	if err != nil {
+		http.Error(w, "init error", http.StatusInternalServerError)
+		return
+	}
 
-		yt, err := getYTCore()
-		if err != nil {
-			http.Error(w, "init error", http.StatusInternalServerError)
-			return
-		}
+	reader, cmd, err := yt.DownloadBinaryCtx(r.Context(), core.DownloadConfig{
+		URL:        req.URL,
+		Type:       dType,
+		Quality:    req.Quality,
+		FormatNote: req.FormatNote,
+	})
+	if err != nil {
+		http.Error(w, "yt-dlp download failed", http.StatusInternalServerError)
+		return
+	}
 
-		reader, cmd, err := yt.DownloadBinaryCtx(r.Context(), core.DownloadConfig{
-			URL:        req.URL,
-			Type:       dType,
-			Quality:    req.Quality,
-			FormatNote: req.FormatNote,
-		})
-		if err != nil {
-			http.Error(w, "yt-dlp download failed", http.StatusInternalServerError)
-			return
-		}
-
-		if err := sendDownloadResponse(w, reader, cmd, dType); err != nil {
-			http.Error(w, "failed to stream data", http.StatusInternalServerError)
-			return
-		}
-	}()
+	if err := sendDownloadResponse(w, reader, cmd, dType); err != nil {
+		http.Error(w, "failed to stream data", http.StatusInternalServerError)
+		return
+	}
 }
 
 func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec.Cmd, dType core.DownloadType) error {
