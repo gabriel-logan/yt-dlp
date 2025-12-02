@@ -37,7 +37,7 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	yt, err := getYTCore()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Some error occurred while initializing yt-dlp core", http.StatusInternalServerError)
 		return
 	}
 
