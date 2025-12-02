@@ -7,6 +7,8 @@ import (
 )
 
 func Auth(next http.Handler) http.Handler {
+	apiKeyFromEnv := os.Getenv("VITE_X_API_KEY")
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/api/hello" {
 			next.ServeHTTP(w, r)
@@ -14,7 +16,6 @@ func Auth(next http.Handler) http.Handler {
 		}
 
 		if strings.HasPrefix(r.URL.Path, "/api") {
-			apiKeyFromEnv := os.Getenv("VITE_X_API_KEY")
 			apiKeyFromHeader := r.Header.Get("X-API-KEY")
 
 			if apiKeyFromHeader != apiKeyFromEnv {

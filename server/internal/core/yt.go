@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 )
 
 type DownloadType int
@@ -32,14 +31,8 @@ type YTCore struct {
 	BinaryPath string
 }
 
-var threads = runtime.NumCPU()
-
 func InitYTCore() (*YTCore, error) {
-	cwd, err := os.Getwd()
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get current directory: %v", err)
-	}
+	cwd := Getwd()
 
 	ytDlpScriptName := os.Getenv("YT_DLP_SCRIPT_NAME")
 
@@ -64,8 +57,7 @@ func (yt *YTCore) GetVideoInfo(url string) (string, error) {
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
-	err := cmd.Run()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("error getting video info: %v, details: %s", err, stderr.String())
 	}
 
@@ -76,7 +68,7 @@ func (yt *YTCore) DownloadBinaryCtx(ctx context.Context, cfg DownloadConfig) (io
 	args := []string{
 		"--no-part",
 		"--no-continue",
-		"--concurrent-fragments", fmt.Sprintf("%d", threads),
+		"--concurrent-fragments", fmt.Sprintf("%d", GetNumCPU()),
 		"--downloader-args", "ffmpeg:-threads=0",
 		"-o",
 		"-",

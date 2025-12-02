@@ -123,13 +123,11 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 		w.Header().Set("Content-Type", "video/x-matroska")
 	}
 
-	_, err := io.Copy(w, reader)
-	if err != nil {
+	if _, err := io.Copy(w, reader); err != nil {
 		return fmt.Errorf("failed to copy data to response: %v", err)
 	}
 
-	err = cmd.Wait()
-	if err != nil {
+	if err := cmd.Wait(); err != nil {
 		return fmt.Errorf("yt-dlp command failed: %v", err)
 	}
 
