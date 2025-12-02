@@ -5,11 +5,11 @@ import (
 	"net/http"
 )
 
-func HelloHandler(w http.ResponseWriter, r *http.Request) {
-	resp := map[string]string{
-		"message": "Hello World!",
-	}
+var helloHandlerResp = map[string]string{
+	"message": "Hello World!",
+}
 
+func HelloHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	json.NewEncoder(w).Encode(helloHandlerResp)
 }
