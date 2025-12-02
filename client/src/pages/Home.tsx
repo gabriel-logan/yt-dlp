@@ -76,7 +76,7 @@ export default function HomePage() {
         </div>
       </motion.div>
 
-      {videoData && (
+      {videoData ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -195,6 +195,15 @@ export default function HomePage() {
               </div>
             </section>
           )}
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4 }}
+          className="mt-20 text-center text-slate-600"
+        >
+          Paste a video URL above to fetch available download formats.
         </motion.div>
       )}
     </div>
