@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gabriel-logan/yt-dlp/server/internal/core"
 )
@@ -52,7 +54,12 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
-	downloadSem <- struct{}{}
+	select {
+	case downloadSem <- struct{}{}:
+	case <-r.Context().Done():
+		http.Error(w, "request was cancelled before acquiring semaphore", http.StatusRequestTimeout)
+		return
+	}
 	defer func() { <-downloadSem }()
 
 	var req struct {
@@ -99,7 +106,10 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reader, cmd, err := yt.DownloadBinaryCtx(r.Context(), core.DownloadConfig{
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Minute)
+	defer cancel()
+
+	reader, cmd, err := yt.DownloadBinaryCtx(ctx, core.DownloadConfig{
 		URL:        req.URL,
 		Type:       dType,
 		Quality:    req.Quality,
