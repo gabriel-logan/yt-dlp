@@ -34,7 +34,7 @@ export default function HomePage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="rounded-2xl bg-white/95 p-8 shadow-2xl backdrop-blur-xl">
             <Loading className="scale-150" />
-            <p className="mt-4 text-center text-sm text-slate-600">
+            <p className="mt-8 text-center text-sm text-slate-600">
               Fetching video info...
             </p>
           </div>
