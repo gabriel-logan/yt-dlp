@@ -11,7 +11,7 @@ export function Header() {
       className="w-full border-b border-slate-200/50 bg-white/80 py-4 backdrop-blur-xl"
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4">
-        <div className="flex items-center gap-3">
+        <Link to="/" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-red-500 to-red-600 shadow-md">
             <FiYoutube className="text-white" size={22} />
           </div>
@@ -19,7 +19,7 @@ export function Header() {
             <h1 className="text-lg font-bold text-slate-800">yt-dlp</h1>
             <p className="text-xs text-slate-500">Video & Audio Downloader</p>
           </div>
-        </div>
+        </Link>
 
         <Link
           to="https://github.com/gabriel-logan/yt-dlp"
