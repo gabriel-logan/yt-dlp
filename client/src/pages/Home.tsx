@@ -6,7 +6,6 @@ import handleDownload, {
   type DownloadProgress,
 } from "../actions/handleDownload";
 import handleFetchVideo from "../actions/handleFetchVideo";
-import { Layout } from "../components/Layout";
 import { Loading } from "../components/Loading";
 import { ProgressBar } from "../components/ProgressBar";
 import type { VideoInfoResponse, VideoInfoResponseFormat } from "../types";
@@ -30,7 +29,7 @@ export default function HomePage() {
   const anyLoading = isLoading || downloadIsLoading;
 
   return (
-    <Layout>
+    <>
       {isLoading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="rounded-2xl bg-white/95 p-8 shadow-2xl backdrop-blur-xl">
@@ -242,7 +241,7 @@ export default function HomePage() {
           )}
         </div>
       </main>
-    </Layout>
+    </>
   );
 }
 
