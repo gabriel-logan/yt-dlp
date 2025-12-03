@@ -17,7 +17,7 @@ import (
 var (
 	ytCore      *core.YTCore
 	initErr     error
-	downloadSem = make(chan struct{}, 4) // limite de 4 downloads simultâneos
+	downloadSem = make(chan struct{}, core.GetNumCPU()/2)
 	once        sync.Once
 )
 
