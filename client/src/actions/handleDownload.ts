@@ -33,7 +33,7 @@ interface HandleDownloadParams {
     title: VideoInfoResponse["title"];
   };
   setDownloadIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  onProgress?: (progress: DownloadProgress) => void;
+  onProgress: React.Dispatch<React.SetStateAction<DownloadProgress>>;
 }
 
 export default async function handleDownload({
@@ -56,7 +56,7 @@ export default async function handleDownload({
     type === "video" ? format.video_ext || "mp4" : format.audio_ext || "mp3";
   const fileName = `${videoData?.title || type}_${quality}.${extension}`;
 
-  onProgress?.({
+  onProgress({
     progress: 0,
     fileName,
     isDownloading: true,
@@ -80,7 +80,7 @@ export default async function handleDownload({
             const percentCompleted = Math.round(
               (progressEvent.loaded * 100) / progressEvent.total,
             );
-            onProgress?.({
+            onProgress({
               progress: percentCompleted,
               fileName,
               isDownloading: true,
@@ -92,7 +92,7 @@ export default async function handleDownload({
               MAX_ESTIMATED_PROGRESS,
               Math.round(loadedMB * PROGRESS_ESTIMATION_RATE_PER_MB),
             );
-            onProgress?.({
+            onProgress({
               progress: estimatedProgress,
               fileName,
               isDownloading: true,
@@ -102,7 +102,7 @@ export default async function handleDownload({
       },
     );
 
-    onProgress?.({
+    onProgress({
       progress: 100,
       fileName,
       isDownloading: true,
@@ -121,7 +121,7 @@ export default async function handleDownload({
 
     // Keep progress visible briefly after completion
     setTimeout(() => {
-      onProgress?.({
+      onProgress({
         progress: 0,
         fileName: "",
         isDownloading: false,
@@ -130,7 +130,7 @@ export default async function handleDownload({
   } catch (error) {
     console.error("Download error:", error);
     alert("Failed to download.");
-    onProgress?.({
+    onProgress({
       progress: 0,
       fileName: "",
       isDownloading: false,

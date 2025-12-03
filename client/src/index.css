@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Global page wrapper styles */
 #root {
   display: flex;
   flex-direction: column;

@@ -86,7 +86,7 @@ export default function HomePage() {
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 font-medium text-white shadow-md transition hover:from-blue-700 hover:to-blue-800 ${
+                  className={`flex items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-700 px-6 py-3 font-medium text-white shadow-md transition hover:from-blue-700 hover:to-blue-800 ${
                     anyLoading && "cursor-not-allowed opacity-50"
                   }`}
                   onClick={() =>
@@ -296,8 +296,8 @@ function FormatCard({ format, type, disabled, onDownload }: FormatCardProps) {
         whileTap={{ scale: 0.97 }}
         className={`flex w-full items-center justify-center gap-2 rounded-lg py-2.5 font-medium text-white shadow-sm transition ${
           isVideo
-            ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
-            : "bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+            ? "bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+            : "bg-linear-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
         } ${disabled && "cursor-not-allowed opacity-50"}`}
         onClick={onDownload}
         disabled={disabled}
