@@ -1,4 +1,5 @@
 import { FiGithub, FiYoutube } from "react-icons/fi";
+import { Link } from "react-router";
 import { motion } from "motion/react";
 
 export function Header() {
@@ -20,15 +21,15 @@ export function Header() {
           </div>
         </div>
 
-        <a
-          href="https://github.com/gabriel-logan/yt-dlp"
+        <Link
+          to="https://github.com/gabriel-logan/yt-dlp"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-800"
         >
           <FiGithub size={18} />
           <span className="hidden sm:inline">View on GitHub</span>
-        </a>
+        </Link>
       </div>
     </motion.header>
   );

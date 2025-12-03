@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { motion } from "motion/react";
 
 export function Footer() {
@@ -11,14 +12,14 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-4 text-center">
         <p className="text-sm text-slate-500">
           Built with{" "}
-          <a
-            href="https://github.com/yt-dlp/yt-dlp"
+          <Link
+            to="https://github.com/yt-dlp/yt-dlp"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-blue-600 hover:underline"
           >
             yt-dlp
-          </a>{" "}
+          </Link>{" "}
           • <span className="text-slate-400">For academic purposes only</span>
         </p>
       </div>
