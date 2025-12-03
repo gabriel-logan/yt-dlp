@@ -130,14 +130,12 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 	if dType == core.Audio {
 		w.Header().Set("Content-Type", "audio/mpeg")
 	} else {
-		w.Header().Set("Content-Type", "video/x-matroska")
+		w.Header().Set("Content-Type", "application/octet-stream")
 	}
-
-	defer reader.Close()
 
 	_, copyErr := io.Copy(w, reader)
 
-	waitErr := cmd.Wait()
+	reader.Close()
 
 	if copyErr != nil {
 		msg := copyErr.Error()
@@ -145,14 +143,17 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 		if strings.Contains(msg, "broken pipe") ||
 			strings.Contains(msg, "reset by peer") ||
 			strings.Contains(msg, "context canceled") {
+			cmd.Process.Kill()
+			cmd.Wait()
 			return nil
 		}
 
 		cmd.Process.Kill()
-
+		cmd.Wait()
 		return fmt.Errorf("copy error: %v", copyErr)
 	}
 
+	waitErr := cmd.Wait()
 	if waitErr != nil {
 		return fmt.Errorf("yt-dlp error: %v", waitErr)
 	}
