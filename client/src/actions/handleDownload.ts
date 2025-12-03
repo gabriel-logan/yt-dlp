@@ -130,12 +130,12 @@ export default async function handleDownload({
   } catch (error) {
     console.error("Download error:", error);
     alert("Failed to download.");
+  } finally {
     onProgress({
       progress: 0,
       fileName: "",
       isDownloading: false,
     });
-  } finally {
     setDownloadIsLoading(false);
   }
 }
