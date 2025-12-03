@@ -1,6 +1,6 @@
 # yt-dlp
 
-Application using https://github.com/yt-dlp/yt-dlp, to download videos and audio. NOTE: Only for studies, cannot be used for commercial use. Improper use is your responsibility.
+Application using https://github.com/yt-dlp/yt-dlp to download videos and audios. NOTE: For academic purposes only, I do not recommend its use for commercial purposes. Misuse is your responsibility.
 
 ## Environment Setup
 
