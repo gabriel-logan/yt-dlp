@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 
 export default function NotFoundPage() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-slate-100 to-slate-300 px-6 text-center">
+    <main className="flex flex-1 flex-col items-center justify-center px-6 text-center">
       <motion.h1
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -34,6 +34,6 @@ export default function NotFoundPage() {
           Go back home
         </Link>
       </motion.div>
-    </div>
+    </main>
   );
 }

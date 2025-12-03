@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* Global page wrapper styles */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+}
+
 button {
   cursor: pointer;
 }
