@@ -11,6 +11,16 @@ export interface DownloadProgress {
   isDownloading: boolean;
 }
 
+// Time in ms to keep the progress bar visible after download completes
+const PROGRESS_HIDE_DELAY_MS = 1500;
+
+// Progress estimation rate: percentage points per MB when total size is unknown
+// This provides a smooth progress animation for streaming downloads
+const PROGRESS_ESTIMATION_RATE_PER_MB = 2;
+
+// Maximum estimated progress when total size is unknown (reserve 5% for completion)
+const MAX_ESTIMATED_PROGRESS = 95;
+
 interface HandleDownloadParams {
   body: {
     type: VideoInfoResponse["_type"];
@@ -78,8 +88,10 @@ export default async function handleDownload({
           } else {
             // If total is unknown, show indeterminate progress based on loaded bytes
             const loadedMB = progressEvent.loaded / (1024 * 1024);
-            // Estimate progress based on loaded data (cap at 95% until complete)
-            const estimatedProgress = Math.min(95, Math.round(loadedMB * 2));
+            const estimatedProgress = Math.min(
+              MAX_ESTIMATED_PROGRESS,
+              Math.round(loadedMB * PROGRESS_ESTIMATION_RATE_PER_MB),
+            );
             onProgress?.({
               progress: estimatedProgress,
               fileName,
@@ -114,7 +126,7 @@ export default async function handleDownload({
         fileName: "",
         isDownloading: false,
       });
-    }, 1500);
+    }, PROGRESS_HIDE_DELAY_MS);
   } catch (error) {
     console.error("Download error:", error);
     alert("Failed to download.");
