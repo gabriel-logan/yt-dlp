@@ -18,7 +18,7 @@ export function ProgressBar({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className="fixed bottom-6 left-1/2 z-50 w-full max-w-md -translate-x-1/2 px-4"
+      className="fixed bottom-12 left-1/2 z-50 w-full max-w-md -translate-x-1/2 px-4"
     >
       <div className="rounded-2xl border border-white/40 bg-white/95 p-4 shadow-xl backdrop-blur-xl">
         <div className="mb-2 flex items-center justify-between">
