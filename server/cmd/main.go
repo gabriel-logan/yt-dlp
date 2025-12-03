@@ -24,15 +24,15 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// API Routes
-	if err := api.RegisterAPIRoutes(mux); err != nil {
-		panic(err)
-	}
-
 	webDistPath := filepath.Join(core.Getwd(), "..", "client", "dist")
 
 	// SPA Handler
 	if err := web.RegisterSPA(mux, webDistPath); err != nil {
+		panic(err)
+	}
+
+	// API Routes
+	if err := api.RegisterAPIRoutes(mux); err != nil {
 		panic(err)
 	}
 
