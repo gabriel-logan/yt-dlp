@@ -31,7 +31,43 @@ VITE_X_API_KEY=00000000000000000000000000000000
 YT_DLP_SCRIPT_NAME=yt-dlp
 
 ### Safety checks
-[ -z "$DEPLOY_DIR" ] && echo "DEPLOY_DIR is invalid!" && exit 1
+# Check if DEPLOY_DIR is empty or whitespace-only
+if [ -z "$DEPLOY_DIR" ] || [ -z "${DEPLOY_DIR// /}" ]; then
+    echo "ERROR: DEPLOY_DIR is empty or invalid!" && exit 1
+fi
+
+# Normalize the path (remove trailing slashes)
+DEPLOY_DIR="${DEPLOY_DIR%/}"
+
+# Check if DEPLOY_DIR is the root directory
+if [ "$DEPLOY_DIR" = "/" ]; then
+    echo "ERROR: DEPLOY_DIR cannot be root (/)! This would wipe the entire system." && exit 1
+fi
+
+# List of protected system directories that must never be used as DEPLOY_DIR
+# Note: /home, /srv, and /var/www are protected as base directories, but subdirectories under them are allowed
+PROTECTED_DIRS="/bin /boot /dev /etc /home /lib /lib64 /media /mnt /proc /root /run /sbin /srv /sys /tmp /usr /var /var/www"
+for protected in $PROTECTED_DIRS; do
+    if [ "$DEPLOY_DIR" = "$protected" ]; then
+        echo "ERROR: DEPLOY_DIR cannot be a protected system directory ($protected)!" && exit 1
+    fi
+done
+
+# Ensure DEPLOY_DIR is an absolute path
+case "$DEPLOY_DIR" in
+    /*) ;; # Absolute path, OK
+    *) echo "ERROR: DEPLOY_DIR must be an absolute path (starting with /)!" && exit 1 ;;
+esac
+
+# Ensure DEPLOY_DIR starts with a safe base directory (must be a subdirectory, not the base itself)
+case "$DEPLOY_DIR" in
+    /opt/*|/srv/*|/home/*|/var/www/*|/app/*|/data/*)
+        ;; # Safe subdirectories, OK
+    *)
+        echo "ERROR: DEPLOY_DIR must be under a safe directory (/opt, /srv, /home, /var/www, /app, or /data)!" && exit 1 ;;
+esac
+
+echo "DEPLOY_DIR validated: $DEPLOY_DIR"
 
 echo "=== Building CLIENT ==="
 cd client
