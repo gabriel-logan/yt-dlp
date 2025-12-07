@@ -12,6 +12,8 @@ All values below are **examples only**. Replace them with the correct values for
 
 ## Environment Configuration
 
+### Linux Auto-Deployment Script
+
 ```sh
 #!/usr/bin/env bash
 set -e
