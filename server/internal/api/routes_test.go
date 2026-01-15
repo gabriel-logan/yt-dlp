@@ -9,16 +9,12 @@ import (
 
 func TestRegisterAPIRoutes_NoError(t *testing.T) {
 	mux := http.NewServeMux()
-	if err := api.RegisterAPIRoutes(mux); err != nil {
-		t.Fatalf("RegisterAPIRoutes returned error: %v", err)
-	}
+	api.RegisterAPIRoutes(mux)
 }
 
 func TestRegisterAPIRoutes_RoutesRegistered(t *testing.T) {
 	mux := http.NewServeMux()
-	if err := api.RegisterAPIRoutes(mux); err != nil {
-		t.Fatalf("RegisterAPIRoutes returned error: %v", err)
-	}
+	api.RegisterAPIRoutes(mux)
 
 	tests := []struct {
 		method  string

@@ -27,15 +27,12 @@ func main() {
 	webDistPath := filepath.Join(core.Getwd(), "..", "client", "dist")
 
 	// SPA Handler
-	if err := web.RegisterSPA(mux, webDistPath); err != nil {
-		panic(err)
-	}
+	web.RegisterSPA(mux, webDistPath)
 
 	// API Routes
-	if err := api.RegisterAPIRoutes(mux); err != nil {
-		panic(err)
-	}
+	api.RegisterAPIRoutes(mux)
 
+	// Global Middleware Stack
 	stack := middleware.CreateChain(
 		middleware.Recover,
 		middleware.Logger,

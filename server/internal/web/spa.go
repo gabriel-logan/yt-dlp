@@ -1,16 +1,17 @@
 package web
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-func RegisterSPA(mux *http.ServeMux, distPath string) error {
+func RegisterSPA(mux *http.ServeMux, distPath string) {
 	distAbs, err := filepath.Abs(distPath)
 	if err != nil {
-		return err
+		log.Fatalf("failed to get absolute path of dist directory: %v", err)
 	}
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +40,4 @@ func RegisterSPA(mux *http.ServeMux, distPath string) error {
 		// fallback to index.html
 		http.ServeFile(w, r, filepath.Join(distAbs, "index.html"))
 	})
-
-	return nil
 }

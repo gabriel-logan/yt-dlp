@@ -23,9 +23,7 @@ func TestRegisterSPA_ServesStaticFile(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	if err := web.RegisterSPA(mux, dist); err != nil {
-		t.Fatalf("RegisterSPA error: %v", err)
-	}
+	web.RegisterSPA(mux, dist)
 
 	req := httptest.NewRequest(http.MethodGet, "/about.html", nil)
 	rr := httptest.NewRecorder()
@@ -47,9 +45,7 @@ func TestRegisterSPA_FallbackToIndex(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	if err := web.RegisterSPA(mux, dist); err != nil {
-		t.Fatalf("RegisterSPA error: %v", err)
-	}
+	web.RegisterSPA(mux, dist)
 
 	req := httptest.NewRequest(http.MethodGet, "/missing.js", nil)
 	rr := httptest.NewRecorder()
@@ -70,9 +66,7 @@ func TestRegisterSPA_BlocksAPIPaths(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	if err := web.RegisterSPA(mux, dist); err != nil {
-		t.Fatalf("RegisterSPA error: %v", err)
-	}
+	web.RegisterSPA(mux, dist)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/users", nil)
 	rr := httptest.NewRecorder()
@@ -95,9 +89,7 @@ func TestRegisterSPA_DirectoryRequestFallsBackToIndex(t *testing.T) {
 	}
 
 	mux := http.NewServeMux()
-	if err := web.RegisterSPA(mux, dist); err != nil {
-		t.Fatalf("RegisterSPA error: %v", err)
-	}
+	web.RegisterSPA(mux, dist)
 
 	req := httptest.NewRequest(http.MethodGet, "/assets", nil)
 	rr := httptest.NewRecorder()
