@@ -10,6 +10,8 @@ import (
 	"github.com/gabriel-logan/yt-dlp/server/internal/core"
 )
 
+const httpXUrl = "http://x"
+
 func createFakeBin(t *testing.T, content string) string {
 	t.Helper()
 
@@ -56,7 +58,7 @@ echo '{"title":"OK"}'
 
 	yt := &core.YTCore{BinaryPath: fake}
 
-	out, err := yt.GetVideoInfo("http://x")
+	out, err := yt.GetVideoInfo(httpXUrl)
 	if err != nil {
 		t.Fatalf("error: %v", err)
 	}
@@ -66,7 +68,7 @@ echo '{"title":"OK"}'
 	}
 }
 
-func TestGetVideoInfo_Error(t *testing.T) {
+func TestGetVideoInfoError(t *testing.T) {
 	fake := createFakeBin(t, `#!/bin/sh
 echo "error" >&2
 exit 1
@@ -74,7 +76,7 @@ exit 1
 
 	yt := &core.YTCore{BinaryPath: fake}
 
-	_, err := yt.GetVideoInfo("http://x")
+	_, err := yt.GetVideoInfo(httpXUrl)
 	if err == nil {
 		t.Fatalf("expected error")
 	}
@@ -88,7 +90,7 @@ echo -n "STREAMDATA"
 	yt := &core.YTCore{BinaryPath: fake}
 
 	cfg := core.DownloadConfig{
-		URL:     "http://x",
+		URL:     httpXUrl,
 		Type:    core.Audio,
 		Quality: 1,
 	}

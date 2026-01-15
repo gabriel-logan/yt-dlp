@@ -11,26 +11,32 @@ import (
 	"github.com/gabriel-logan/yt-dlp/server/internal/web"
 )
 
+const indexHtmlFileName = "index.html"
+const aboutHtmlFileName = "about.html"
+const indexHtmlContent = `<html><head><title>Test SPA</title></head><body><h1>Welcome to the SPA</h1></body></html>`
+const aboutHtmlContent = `<html><head><title>About</title></head><body><h1>About Page</h1></body></html>`
+const expected200Got = "expected 200, got %d"
+
 func TestRegisterSPAServesStaticFile(t *testing.T) {
 	dist := t.TempDir()
-	indexContent := []byte("<html>index</html>")
-	aboutContent := []byte("<html>about</html>")
-	if err := os.WriteFile(filepath.Join(dist, "index.html"), indexContent, 0o644); err != nil {
+	indexContent := []byte(indexHtmlContent)
+	aboutContent := []byte(aboutHtmlContent)
+	if err := os.WriteFile(filepath.Join(dist, indexHtmlFileName), indexContent, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dist, "about.html"), aboutContent, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dist, aboutHtmlFileName), aboutContent, 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	mux := http.NewServeMux()
 	web.RegisterSPA(mux, dist)
 
-	req := httptest.NewRequest(http.MethodGet, "/about.html", nil)
+	req := httptest.NewRequest(http.MethodGet, "/"+aboutHtmlFileName, nil)
 	rr := httptest.NewRecorder()
 	mux.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d", rr.Code)
+		t.Fatalf(expected200Got, rr.Code)
 	}
 	if !bytes.Equal(rr.Body.Bytes(), aboutContent) {
 		t.Fatalf("expected body %q, got %q", string(aboutContent), rr.Body.String())
@@ -39,8 +45,8 @@ func TestRegisterSPAServesStaticFile(t *testing.T) {
 
 func TestRegisterSPAFallbackToIndex(t *testing.T) {
 	dist := t.TempDir()
-	indexContent := []byte("<html>index</html>")
-	if err := os.WriteFile(filepath.Join(dist, "index.html"), indexContent, 0o644); err != nil {
+	indexContent := []byte(indexHtmlContent)
+	if err := os.WriteFile(filepath.Join(dist, indexHtmlFileName), indexContent, 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -52,7 +58,7 @@ func TestRegisterSPAFallbackToIndex(t *testing.T) {
 	mux.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d", rr.Code)
+		t.Fatalf(expected200Got, rr.Code)
 	}
 	if !bytes.Equal(rr.Body.Bytes(), indexContent) {
 		t.Fatalf("expected index.html body %q, got %q", string(indexContent), rr.Body.String())
@@ -61,7 +67,7 @@ func TestRegisterSPAFallbackToIndex(t *testing.T) {
 
 func TestRegisterSPABlocksAPIPaths(t *testing.T) {
 	dist := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dist, "index.html"), []byte("<html>index</html>"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dist, indexHtmlFileName), []byte(indexHtmlContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -79,8 +85,8 @@ func TestRegisterSPABlocksAPIPaths(t *testing.T) {
 
 func TestRegisterSPADirectoryRequestFallsBackToIndex(t *testing.T) {
 	dist := t.TempDir()
-	indexContent := []byte("<html>index</html>")
-	if err := os.WriteFile(filepath.Join(dist, "index.html"), indexContent, 0o644); err != nil {
+	indexContent := []byte(indexHtmlContent)
+	if err := os.WriteFile(filepath.Join(dist, indexHtmlFileName), indexContent, 0o644); err != nil {
 		t.Fatal(err)
 	}
 	assetsDir := filepath.Join(dist, "assets")
@@ -96,7 +102,7 @@ func TestRegisterSPADirectoryRequestFallsBackToIndex(t *testing.T) {
 	mux.ServeHTTP(rr, req)
 
 	if rr.Code != http.StatusOK {
-		t.Fatalf("expected 200, got %d", rr.Code)
+		t.Fatalf(expected200Got, rr.Code)
 	}
 	if !bytes.Equal(rr.Body.Bytes(), indexContent) {
 		t.Fatalf("expected index.html body %q, got %q", string(indexContent), rr.Body.String())

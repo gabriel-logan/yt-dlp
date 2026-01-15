@@ -9,6 +9,8 @@ import (
 	"golang.org/x/time/rate"
 )
 
+const exampleUrl = "http://example.com/"
+
 func TestRateLimitAllowsWithinLimit(t *testing.T) {
 	middleware.RateLimits["GET"] = middleware.MethodLimit{
 		Limiter: rate.NewLimiter(5, 5),
@@ -23,12 +25,12 @@ func TestRateLimitAllowsWithinLimit(t *testing.T) {
 
 	handler := middleware.RateLimit(next)
 	rr1 := httptest.NewRecorder()
-	req1 := httptest.NewRequest(http.MethodGet, "http://example.com/", nil)
+	req1 := httptest.NewRequest(http.MethodGet, exampleUrl, nil)
 	req1.RemoteAddr = "10.0.0.1:12345"
 	handler.ServeHTTP(rr1, req1)
 
 	rr2 := httptest.NewRecorder()
-	req2 := httptest.NewRequest(http.MethodGet, "http://example.com/", nil)
+	req2 := httptest.NewRequest(http.MethodGet, exampleUrl, nil)
 	req2.RemoteAddr = "10.0.0.1:12346"
 	handler.ServeHTTP(rr2, req2)
 
@@ -61,7 +63,7 @@ func TestRateLimitOverLimitTriggersBan(t *testing.T) {
 
 	// First request should pass
 	rr1 := httptest.NewRecorder()
-	req1 := httptest.NewRequest(http.MethodGet, "http://example.com/", nil)
+	req1 := httptest.NewRequest(http.MethodGet, exampleUrl, nil)
 	req1.RemoteAddr = ip
 	handler.ServeHTTP(rr1, req1)
 	if rr1.Code != http.StatusOK {
@@ -70,7 +72,7 @@ func TestRateLimitOverLimitTriggersBan(t *testing.T) {
 
 	// Second immediate request should be rate limited -> 429 and client banned
 	rr2 := httptest.NewRecorder()
-	req2 := httptest.NewRequest(http.MethodGet, "http://example.com/", nil)
+	req2 := httptest.NewRequest(http.MethodGet, exampleUrl, nil)
 	req2.RemoteAddr = ip
 	handler.ServeHTTP(rr2, req2)
 
@@ -80,7 +82,7 @@ func TestRateLimitOverLimitTriggersBan(t *testing.T) {
 
 	// Third request while banned should still be 429 (temp ban path)
 	rr3 := httptest.NewRecorder()
-	req3 := httptest.NewRequest(http.MethodGet, "http://example.com/", nil)
+	req3 := httptest.NewRequest(http.MethodGet, exampleUrl, nil)
 	req3.RemoteAddr = ip
 	handler.ServeHTTP(rr3, req3)
 
@@ -99,7 +101,7 @@ func TestRateLimitMethodNotAllowed(t *testing.T) {
 	handler := middleware.RateLimit(next)
 
 	rr := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPut, "http://example.com/", nil)
+	req := httptest.NewRequest(http.MethodPut, exampleUrl, nil)
 	req.RemoteAddr = "10.0.0.3:10001"
 	handler.ServeHTTP(rr, req)
 
@@ -115,7 +117,7 @@ func TestRateLimitInvalidIP(t *testing.T) {
 	handler := middleware.RateLimit(next)
 
 	rr := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "http://example.com/", nil)
+	req := httptest.NewRequest(http.MethodGet, exampleUrl, nil)
 	// Invalid RemoteAddr format should trigger 400
 	req.RemoteAddr = "invalid"
 	handler.ServeHTTP(rr, req)
