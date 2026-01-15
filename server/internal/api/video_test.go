@@ -8,7 +8,7 @@ import (
 	"github.com/gabriel-logan/yt-dlp/server/internal/api"
 )
 
-func TestVideoInfoHandler_BadURL(t *testing.T) {
+func TestVideoInfoHandlerBadURL(t *testing.T) {
 	req := httptest.NewRequest("GET", "/info?url=", nil)
 	w := httptest.NewRecorder()
 
@@ -19,7 +19,7 @@ func TestVideoInfoHandler_BadURL(t *testing.T) {
 	}
 }
 
-func TestVideoInfoHandler_BigBadURL(t *testing.T) {
+func TestVideoInfoHandlerBigBadURL(t *testing.T) {
 	longURL := "http://example.com/" + strings.Repeat("a", 2001)
 	req := httptest.NewRequest("GET", "/info?url="+longURL, nil)
 	w := httptest.NewRecorder()

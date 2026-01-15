@@ -7,12 +7,12 @@ import (
 	"github.com/gabriel-logan/yt-dlp/server/internal/api"
 )
 
-func TestRegisterAPIRoutes_NoError(t *testing.T) {
+func TestRegisterAPIRoutesNoError(t *testing.T) {
 	mux := http.NewServeMux()
 	api.RegisterAPIRoutes(mux)
 }
 
-func TestRegisterAPIRoutes_RoutesRegistered(t *testing.T) {
+func TestRegisterAPIRoutesRoutesRegistered(t *testing.T) {
 	mux := http.NewServeMux()
 	api.RegisterAPIRoutes(mux)
 

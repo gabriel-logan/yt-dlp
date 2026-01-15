@@ -12,7 +12,7 @@ import (
 	"github.com/gabriel-logan/yt-dlp/server/internal/middleware"
 )
 
-func TestRecover_PanicReturns500AndLogs(t *testing.T) {
+func TestRecoverPanicReturns500AndLogs(t *testing.T) {
 	var buf bytes.Buffer
 	orig := log.Default().Writer()
 	log.SetOutput(&buf)
@@ -45,7 +45,7 @@ func TestRecover_PanicReturns500AndLogs(t *testing.T) {
 	}
 }
 
-func TestRecover_NoPanicPassThrough(t *testing.T) {
+func TestRecoverNoPanicPassThrough(t *testing.T) {
 	called := false
 	okHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		called = true

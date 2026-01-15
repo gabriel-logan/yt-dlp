@@ -9,7 +9,7 @@ import (
 	"github.com/gabriel-logan/yt-dlp/server/internal/middleware"
 )
 
-func TestAuth_AllowsHelloWithoutApiKey(t *testing.T) {
+func TestAuthAllowsHelloWithoutApiKey(t *testing.T) {
 	_ = os.Setenv("VITE_X_API_KEY", "secret")
 
 	called := false
@@ -34,7 +34,7 @@ func TestAuth_AllowsHelloWithoutApiKey(t *testing.T) {
 	}
 }
 
-func TestAuth_RejectsApiWithoutCorrectKey(t *testing.T) {
+func TestAuthRejectsApiWithoutCorrectKey(t *testing.T) {
 	_ = os.Setenv("VITE_X_API_KEY", "secret")
 
 	called := false
@@ -59,7 +59,7 @@ func TestAuth_RejectsApiWithoutCorrectKey(t *testing.T) {
 	}
 }
 
-func TestAuth_AllowsApiWithCorrectKey(t *testing.T) {
+func TestAuthAllowsApiWithCorrectKey(t *testing.T) {
 	_ = os.Setenv("VITE_X_API_KEY", "secret")
 
 	called := false
@@ -85,7 +85,7 @@ func TestAuth_AllowsApiWithCorrectKey(t *testing.T) {
 	}
 }
 
-func TestAuth_NonApiPathPassThrough(t *testing.T) {
+func TestAuthNonApiPathPassThrough(t *testing.T) {
 	_ = os.Setenv("VITE_X_API_KEY", "secret")
 
 	called := false

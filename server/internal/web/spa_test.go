@@ -11,7 +11,7 @@ import (
 	"github.com/gabriel-logan/yt-dlp/server/internal/web"
 )
 
-func TestRegisterSPA_ServesStaticFile(t *testing.T) {
+func TestRegisterSPAServesStaticFile(t *testing.T) {
 	dist := t.TempDir()
 	indexContent := []byte("<html>index</html>")
 	aboutContent := []byte("<html>about</html>")
@@ -37,7 +37,7 @@ func TestRegisterSPA_ServesStaticFile(t *testing.T) {
 	}
 }
 
-func TestRegisterSPA_FallbackToIndex(t *testing.T) {
+func TestRegisterSPAFallbackToIndex(t *testing.T) {
 	dist := t.TempDir()
 	indexContent := []byte("<html>index</html>")
 	if err := os.WriteFile(filepath.Join(dist, "index.html"), indexContent, 0o644); err != nil {
@@ -59,7 +59,7 @@ func TestRegisterSPA_FallbackToIndex(t *testing.T) {
 	}
 }
 
-func TestRegisterSPA_BlocksAPIPaths(t *testing.T) {
+func TestRegisterSPABlocksAPIPaths(t *testing.T) {
 	dist := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dist, "index.html"), []byte("<html>index</html>"), 0o644); err != nil {
 		t.Fatal(err)
@@ -77,7 +77,7 @@ func TestRegisterSPA_BlocksAPIPaths(t *testing.T) {
 	}
 }
 
-func TestRegisterSPA_DirectoryRequestFallsBackToIndex(t *testing.T) {
+func TestRegisterSPADirectoryRequestFallsBackToIndex(t *testing.T) {
 	dist := t.TempDir()
 	indexContent := []byte("<html>index</html>")
 	if err := os.WriteFile(filepath.Join(dist, "index.html"), indexContent, 0o644); err != nil {

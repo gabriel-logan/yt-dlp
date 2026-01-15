@@ -9,7 +9,7 @@ import (
 	"github.com/gabriel-logan/yt-dlp/server/internal/middleware"
 )
 
-func TestCORS_DevelopmentHeadersAndNextCalled(t *testing.T) {
+func TestCORSDevelopmentHeadersAndNextCalled(t *testing.T) {
 	os.Setenv("GO_ENV", "development")
 	os.Setenv("CLIENT_URL", "http://example.com")
 	defer os.Unsetenv("GO_ENV")
@@ -49,7 +49,7 @@ func TestCORS_DevelopmentHeadersAndNextCalled(t *testing.T) {
 	}
 }
 
-func TestCORS_DevelopmentOptionsPreflight(t *testing.T) {
+func TestCORSDevelopmentOptionsPreflight(t *testing.T) {
 	os.Setenv("GO_ENV", "development")
 	os.Setenv("CLIENT_URL", "http://example.com")
 	defer os.Unsetenv("GO_ENV")
@@ -80,7 +80,7 @@ func TestCORS_DevelopmentOptionsPreflight(t *testing.T) {
 	}
 }
 
-func TestCORS_NonDevelopmentNoHeadersAndNextCalled(t *testing.T) {
+func TestCORSNonDevelopmentNoHeadersAndNextCalled(t *testing.T) {
 	os.Setenv("GO_ENV", "production")
 	os.Setenv("CLIENT_URL", "http://example.com")
 	defer os.Unsetenv("GO_ENV")

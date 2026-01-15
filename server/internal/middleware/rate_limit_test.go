@@ -9,7 +9,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func TestRateLimit_AllowsWithinLimit(t *testing.T) {
+func TestRateLimitAllowsWithinLimit(t *testing.T) {
 	middleware.RateLimits["GET"] = middleware.MethodLimit{
 		Limiter: rate.NewLimiter(5, 5),
 		BanTime: 1,
@@ -45,7 +45,7 @@ func TestRateLimit_AllowsWithinLimit(t *testing.T) {
 	}
 }
 
-func TestRateLimit_OverLimitTriggersBan(t *testing.T) {
+func TestRateLimitOverLimitTriggersBan(t *testing.T) {
 	middleware.RateLimits["GET"] = middleware.MethodLimit{
 		Limiter: rate.NewLimiter(1, 1),
 		BanTime: 2,
@@ -89,7 +89,7 @@ func TestRateLimit_OverLimitTriggersBan(t *testing.T) {
 	}
 }
 
-func TestRateLimit_MethodNotAllowed(t *testing.T) {
+func TestRateLimitMethodNotAllowed(t *testing.T) {
 	// Ensure PUT is not configured
 	delete(middleware.RateLimits, http.MethodPut)
 
@@ -108,7 +108,7 @@ func TestRateLimit_MethodNotAllowed(t *testing.T) {
 	}
 }
 
-func TestRateLimit_InvalidIP(t *testing.T) {
+func TestRateLimitInvalidIP(t *testing.T) {
 	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
