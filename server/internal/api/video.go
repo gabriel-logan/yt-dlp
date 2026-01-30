@@ -184,6 +184,7 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("X-Accel-Buffering", "no")
+	w.Header().Set("Transfer-Encoding", "chunked")
 
 	w.WriteHeader(http.StatusOK)
 	if canFlush {
