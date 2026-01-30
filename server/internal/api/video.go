@@ -142,6 +142,8 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 
 	flusher, canFlush := w.(http.Flusher)
 
+	type noWriterTo struct{ io.Reader }
+
 	type flushEveryNWriter struct {
 		w       http.ResponseWriter
 		f       http.Flusher
@@ -156,7 +158,7 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 
 	var dst io.Writer = writerFunc(write)
 	if canFlush {
-		fw := &flushEveryNWriter{w: w, f: flusher, every: 5 * 1024 * 1024} // flush every 5MB
+		fw := &flushEveryNWriter{w: w, f: flusher, every: 1 * 1024 * 1024} // flush every 1MB
 		dst = writerFunc(func(p []byte) (int, error) {
 			n, err := fw.w.Write(p)
 			if n > 0 {
@@ -172,13 +174,12 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 
 	fileName := "download.bin"
 	if dType == core.Audio {
-		w.Header().Set("Content-Type", "application/octet-stream")
 		fileName = "audio.bin"
 	} else {
-		w.Header().Set("Content-Type", "video/x-matroska")
 		fileName = "video.mkv"
 	}
 
+	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Cache-Control", "no-store")
@@ -193,7 +194,7 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 	buf := *bp
 	defer copyBufPool.Put(bp)
 
-	_, copyErr := io.CopyBuffer(dst, reader, buf)
+	_, copyErr := io.CopyBuffer(dst, noWriterTo{reader}, buf)
 	if copyErr != nil {
 		msg := copyErr.Error()
 		if strings.Contains(msg, "broken pipe") ||
