@@ -20,6 +20,12 @@ var (
 	initErr     error
 	downloadSem = make(chan struct{}, core.GetNumCPU())
 	once        sync.Once
+	copyBufPool = sync.Pool{
+		New: func() any {
+			b := make([]byte, 256*1024) // 256KB
+			return &b
+		},
+	}
 )
 
 func getYTCore() (*core.YTCore, error) {
@@ -136,6 +142,34 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 
 	flusher, canFlush := w.(http.Flusher)
 
+	type flushEveryNWriter struct {
+		w       http.ResponseWriter
+		f       http.Flusher
+		every   int
+		pending int
+	}
+
+	write := func(p []byte) (int, error) {
+		n, err := w.Write(p)
+		return n, err
+	}
+
+	var dst io.Writer = writerFunc(write)
+	if canFlush {
+		fw := &flushEveryNWriter{w: w, f: flusher, every: 5 * 1024 * 1024} // flush every 5MB
+		dst = writerFunc(func(p []byte) (int, error) {
+			n, err := fw.w.Write(p)
+			if n > 0 {
+				fw.pending += n
+				if fw.pending >= fw.every {
+					fw.f.Flush()
+					fw.pending = 0
+				}
+			}
+			return n, err
+		})
+	}
+
 	fileName := "download.bin"
 	if dType == core.Audio {
 		w.Header().Set("Content-Type", "application/octet-stream")
@@ -155,38 +189,27 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 		flusher.Flush()
 	}
 
-	buf := make([]byte, 32*1024)
-	for {
-		n, readErr := reader.Read(buf)
-		if n > 0 {
-			if _, writeErr := w.Write(buf[:n]); writeErr != nil {
-				msg := writeErr.Error()
-				if strings.Contains(msg, "broken pipe") ||
-					strings.Contains(msg, "reset by peer") ||
-					strings.Contains(msg, "context canceled") {
-					_ = cmd.Process.Kill()
-					_ = cmd.Wait()
-					return nil
-				}
+	bp := copyBufPool.Get().(*[]byte)
+	buf := *bp
+	defer copyBufPool.Put(bp)
 
-				_ = cmd.Process.Kill()
-				_ = cmd.Wait()
-				return fmt.Errorf("write error: %v", writeErr)
-			}
-
-			if canFlush {
-				flusher.Flush()
-			}
-		}
-
-		if readErr == io.EOF {
-			break
-		}
-		if readErr != nil {
+	_, copyErr := io.CopyBuffer(dst, reader, buf)
+	if copyErr != nil {
+		msg := copyErr.Error()
+		if strings.Contains(msg, "broken pipe") ||
+			strings.Contains(msg, "reset by peer") ||
+			strings.Contains(msg, "context canceled") {
 			_ = cmd.Process.Kill()
 			_ = cmd.Wait()
-			return fmt.Errorf("read error: %v", readErr)
+			return nil
 		}
+		_ = cmd.Process.Kill()
+		_ = cmd.Wait()
+		return fmt.Errorf("stream copy error: %v", copyErr)
+	}
+
+	if canFlush {
+		flusher.Flush()
 	}
 
 	if waitErr := cmd.Wait(); waitErr != nil {
@@ -195,6 +218,10 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 
 	return nil
 }
+
+type writerFunc func([]byte) (int, error)
+
+func (wf writerFunc) Write(p []byte) (int, error) { return wf(p) }
 
 func stripYouTubeListParam(raw string) string {
 	u, err := url.Parse(raw)
