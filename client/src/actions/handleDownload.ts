@@ -92,7 +92,7 @@ export default async function handleDownload({
 
   const stopFakeProgress = () => {
     if (fakeTimer !== null) {
-      window.clearInterval(fakeTimer);
+      globalThis.clearInterval(fakeTimer);
       fakeTimer = null;
     }
   };
@@ -101,7 +101,7 @@ export default async function handleDownload({
     if (fakeTimer !== null) return;
     fakeStartTs = performance.now();
 
-    fakeTimer = window.setInterval(() => {
+    fakeTimer = globalThis.setInterval(() => {
       const elapsed = performance.now() - fakeStartTs;
       const ratio = Math.min(1, elapsed / FAKE_PROGRESS_DURATION_MS);
       const fake = Math.round(ratio * MAX_ESTIMATED_PROGRESS);
@@ -147,7 +147,7 @@ export default async function handleDownload({
 
           const progressRatio =
             typeof anyEvent?.progress === "number" &&
-            isFinite(anyEvent.progress)
+            Number.isFinite(anyEvent.progress)
               ? anyEvent.progress
               : undefined;
 
@@ -189,7 +189,7 @@ export default async function handleDownload({
     emitProgress(100);
     succeeded = true;
 
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const url = globalThis.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
 
     link.href = url;
