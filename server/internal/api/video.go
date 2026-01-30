@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os/exec"
 	"strings"
 	"sync"
@@ -42,6 +43,8 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Some error occurred while initializing yt-dlp core", http.StatusInternalServerError)
 		return
 	}
+
+	url = stripYouTubeListParam(url)
 
 	info, err := yt.GetVideoInfo(url)
 	if err != nil {
@@ -109,6 +112,8 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Minute)
 	defer cancel()
 
+	req.URL = stripYouTubeListParam(req.URL)
+
 	reader, cmd, err := yt.DownloadBinaryCtx(ctx, core.DownloadConfig{
 		URL:        req.URL,
 		Type:       dType,
@@ -127,36 +132,92 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec.Cmd, dType core.DownloadType) error {
+	defer reader.Close()
+
+	flusher, canFlush := w.(http.Flusher)
+
+	fileName := "download.bin"
 	if dType == core.Audio {
-		w.Header().Set("Content-Type", "audio/mpeg")
-	} else {
 		w.Header().Set("Content-Type", "application/octet-stream")
+		fileName = "audio.bin"
+	} else {
+		w.Header().Set("Content-Type", "video/x-matroska")
+		fileName = "video.mkv"
 	}
 
-	_, copyErr := io.Copy(w, reader)
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("X-Accel-Buffering", "no")
 
-	reader.Close()
+	w.WriteHeader(http.StatusOK)
+	if canFlush {
+		flusher.Flush()
+	}
 
-	if copyErr != nil {
-		msg := copyErr.Error()
+	buf := make([]byte, 32*1024)
+	for {
+		n, readErr := reader.Read(buf)
+		if n > 0 {
+			if _, writeErr := w.Write(buf[:n]); writeErr != nil {
+				msg := writeErr.Error()
+				if strings.Contains(msg, "broken pipe") ||
+					strings.Contains(msg, "reset by peer") ||
+					strings.Contains(msg, "context canceled") {
+					_ = cmd.Process.Kill()
+					_ = cmd.Wait()
+					return nil
+				}
 
-		if strings.Contains(msg, "broken pipe") ||
-			strings.Contains(msg, "reset by peer") ||
-			strings.Contains(msg, "context canceled") {
-			cmd.Process.Kill()
-			cmd.Wait()
-			return nil
+				_ = cmd.Process.Kill()
+				_ = cmd.Wait()
+				return fmt.Errorf("write error: %v", writeErr)
+			}
+
+			if canFlush {
+				flusher.Flush()
+			}
 		}
 
-		cmd.Process.Kill()
-		cmd.Wait()
-		return fmt.Errorf("copy error: %v", copyErr)
+		if readErr == io.EOF {
+			break
+		}
+		if readErr != nil {
+			_ = cmd.Process.Kill()
+			_ = cmd.Wait()
+			return fmt.Errorf("read error: %v", readErr)
+		}
 	}
 
-	waitErr := cmd.Wait()
-	if waitErr != nil {
+	if waitErr := cmd.Wait(); waitErr != nil {
 		return fmt.Errorf("yt-dlp error: %v", waitErr)
 	}
 
 	return nil
+}
+
+func stripYouTubeListParam(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil {
+		return raw
+	}
+
+	host := strings.ToLower(u.Hostname())
+	isYouTube := host == "youtube.com" ||
+		host == "www.youtube.com" ||
+		host == "m.youtube.com" ||
+		host == "music.youtube.com" ||
+		host == "youtu.be"
+
+	if !isYouTube {
+		return raw
+	}
+
+	q := u.Query()
+	if _, ok := q["list"]; !ok {
+		return raw
+	}
+	q.Del("list")
+	u.RawQuery = q.Encode()
+	return u.String()
 }
