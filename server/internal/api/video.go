@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os/exec"
@@ -46,6 +47,7 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	yt, err := getYTCore()
 	if err != nil {
+		log.Println("getYTCore error: ", err)
 		http.Error(w, "Some error occurred while initializing yt-dlp core", http.StatusInternalServerError)
 		return
 	}
@@ -54,6 +56,7 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	info, err := yt.GetVideoInfo(url)
 	if err != nil {
+		log.Println("GetVideoInfo error: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -63,9 +66,13 @@ func VideoInfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Minute)
+	defer cancel()
+
 	select {
 	case downloadSem <- struct{}{}:
-	case <-r.Context().Done():
+	case <-ctx.Done():
+		log.Println("DownloadHandler: context done before acquiring semaphore")
 		http.Error(w, "request was cancelled before acquiring semaphore", http.StatusRequestTimeout)
 		return
 	}
@@ -111,12 +118,10 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	yt, err := getYTCore()
 	if err != nil {
+		log.Println("getYTCore error: ", err)
 		http.Error(w, "init error", http.StatusInternalServerError)
 		return
 	}
-
-	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Minute)
-	defer cancel()
 
 	req.URL = stripYouTubeListParam(req.URL)
 
@@ -127,6 +132,7 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		FormatNote: req.FormatNote,
 	})
 	if err != nil {
+		log.Println("DownloadBinaryCtx error: ", err)
 		http.Error(w, "yt-dlp download failed", http.StatusInternalServerError)
 		return
 	}
