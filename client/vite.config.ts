@@ -13,4 +13,16 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+          ui: ["tailwindcss", "motion", "react-icons"],
+          fetcher: ["axios"],
+          router: ["react-router"],
+        },
+      },
+    },
+  },
 });
