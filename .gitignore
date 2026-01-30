@@ -32,3 +32,19 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Video and Audio files
+*.mp4
+*.mkv
+*.avi
+*.mp3
+*.wav
+*.flac
+*.mov
+*.wmv
+*.flv
+*.webm
+*.aac
+*.ogg
+*.m4a
+
