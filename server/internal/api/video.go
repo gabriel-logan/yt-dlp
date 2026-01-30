@@ -17,7 +17,7 @@ import (
 var (
 	ytCore      *core.YTCore
 	initErr     error
-	downloadSem = make(chan struct{}, core.GetNumCPU()/2)
+	downloadSem = make(chan struct{}, core.GetNumCPU())
 	once        sync.Once
 )
 
