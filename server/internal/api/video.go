@@ -124,12 +124,14 @@ func VideoDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	req.URL = stripYouTubeListParam(req.URL)
+	isYouTube := isYouTubeURL(req.URL)
 
 	reader, cmd, err := yt.DownloadBinaryCtx(ctx, core.DownloadConfig{
 		URL:        req.URL,
 		Type:       dType,
 		Quality:    req.Quality,
 		FormatNote: req.FormatNote,
+		IsYouTube:  isYouTube,
 	})
 	if err != nil {
 		log.Println("DownloadBinaryCtx error: ", err)
@@ -255,4 +257,20 @@ func stripYouTubeListParam(raw string) string {
 	q.Del("list")
 	u.RawQuery = q.Encode()
 	return u.String()
+}
+
+func isYouTubeURL(raw string) bool {
+	u, err := url.Parse(raw)
+
+	if err != nil {
+		return false
+	}
+
+	host := strings.ToLower(u.Hostname())
+
+	return host == "youtube.com" ||
+		host == "www.youtube.com" ||
+		host == "m.youtube.com" ||
+		host == "music.youtube.com" ||
+		host == "youtu.be"
 }

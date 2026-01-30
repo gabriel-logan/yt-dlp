@@ -25,6 +25,7 @@ type DownloadConfig struct {
 	Type       DownloadType
 	Quality    int    // Ex: 0, 5, 6, 7, etc.
 	FormatNote string // Ex: "720p60", "1080p60", 480p", etc.
+	IsYouTube  bool   // Only true for YouTube URLs; used to enable audio+video merge safely.
 }
 
 type YTCore struct {
@@ -95,7 +96,34 @@ func (yt *YTCore) DownloadBinaryCtx(ctx context.Context, cfg DownloadConfig) (io
 		}
 
 	case Video:
-		if cfg.FormatNote != "" {
+		if cfg.IsYouTube {
+			// YouTube often exposes higher qualities as video-only (DASH).
+			// Prefer a muxed (audio+video) format first; otherwise fall back to merging.
+			if cfg.FormatNote != "" {
+				fmtSel = fmt.Sprintf(
+					"b[format_note=%s][acodec!=none]/bv*[format_note=%s]+ba/b",
+					cfg.FormatNote,
+					cfg.FormatNote,
+				)
+			} else {
+				idx := cfg.Quality
+
+				if idx < 0 {
+					idx = 0
+				}
+
+				if idx >= len(videoHeights) {
+					idx = len(videoHeights) - 1
+				}
+
+				h := videoHeights[idx]
+				fmtSel = fmt.Sprintf(
+					"b[height<=?%d][acodec!=none]/bv*[height<=?%d]+ba/b",
+					h,
+					h,
+				)
+			}
+		} else if cfg.FormatNote != "" {
 			fmtSel = fmt.Sprintf("b[format_note=%s]/bv*+ba/b", cfg.FormatNote)
 		} else {
 			idx := cfg.Quality
