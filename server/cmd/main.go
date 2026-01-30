@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gabriel-logan/yt-dlp/server/internal/api"
+	"github.com/gabriel-logan/yt-dlp/server/internal/config"
 	"github.com/gabriel-logan/yt-dlp/server/internal/core"
 	"github.com/gabriel-logan/yt-dlp/server/internal/middleware"
 	"github.com/gabriel-logan/yt-dlp/server/internal/web"
@@ -21,6 +22,8 @@ func main() {
 	if err := godotenv.Load(envPath); err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	config.InitLogger()
 
 	mux := http.NewServeMux()
 
