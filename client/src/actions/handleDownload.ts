@@ -19,7 +19,7 @@ const MAX_ESTIMATED_PROGRESS = 95;
 
 // Fake progress fallback when we truly have no usable progress info
 const FAKE_PROGRESS_DURATION_MS = 25_000; // 25 seconds
-const FAKE_PROGRESS_TICK_MS = 250;
+const FAKE_PROGRESS_TICK_MS = 600;
 
 interface HandleDownloadParams {
   body: {
