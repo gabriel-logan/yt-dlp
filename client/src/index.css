@@ -7,6 +7,9 @@
   background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
 }
 
-button {
+button,
+a,
+select,
+input[type="checkbox"] {
   cursor: pointer;
 }

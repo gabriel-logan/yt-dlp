@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 
-export function Loading({ className }: { className?: string }) {
+export function Loading({ className }: Readonly<{ className?: string }>) {
   return (
     <div className={"flex items-center justify-center " + className}>
       <motion.div

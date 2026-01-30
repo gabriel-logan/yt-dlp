@@ -252,7 +252,12 @@ interface FormatCardProps {
   onDownload: () => void;
 }
 
-function FormatCard({ format, type, disabled, onDownload }: FormatCardProps) {
+function FormatCard({
+  format,
+  type,
+  disabled,
+  onDownload,
+}: Readonly<FormatCardProps>) {
   const isVideo = type === "video";
 
   return (

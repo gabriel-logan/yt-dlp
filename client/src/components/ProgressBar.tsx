@@ -10,7 +10,7 @@ export function ProgressBar({
   progress,
   isVisible,
   fileName,
-}: ProgressBarProps) {
+}: Readonly<ProgressBarProps>) {
   if (!isVisible) return null;
 
   return (
