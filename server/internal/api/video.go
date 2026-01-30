@@ -180,9 +180,9 @@ func sendDownloadResponse(w http.ResponseWriter, reader io.ReadCloser, cmd *exec
 
 	fileName := "download.bin"
 	if dType == core.Audio {
-		fileName = "audio.bin"
+		fileName = "audio.m4a"
 	} else {
-		fileName = "video.mkv"
+		fileName = "video.mp4"
 	}
 
 	w.Header().Set("Content-Type", "application/octet-stream")
