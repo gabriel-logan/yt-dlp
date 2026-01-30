@@ -43,11 +43,17 @@ export default async function handleFetchVideo({
         const isAudioOnly =
           format.vcodec === "none" && format.acodec !== "none";
 
+        const isMp4Container =
+          (format.ext || "").toLowerCase() === "mp4" ||
+          (format.audio_ext || "").toLowerCase() === "mp4";
+
         if (isVideo) {
           videoFormats.push(format);
         }
 
-        if (isAudioOnly) {
+        // Don't show MP4 audio-only entries in the Audio section.
+        // (On YouTube these are typically M4A audio streams but may show up with mp4 container fields.)
+        if (isAudioOnly && !isMp4Container) {
           audioFormats.push(format);
         }
       });
